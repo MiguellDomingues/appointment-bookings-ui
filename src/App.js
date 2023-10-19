@@ -16,6 +16,12 @@ const GUEST = {}
 const APOINTEE = {username: "aaa", password: "aaa"}  //USER who makes appointments
 const APOINTER = {username: "aaaa", password: "aaaa"}  //STOREOWNER who manages appointments
 
+const accounts = [
+  {username: "", password: ""},        //guest
+  {username: "aaa", password: "aaa"} , //user
+  {username: "aaaa", password: "aaaa"} //storeowner
+]
+
 function App() {
 
 
@@ -56,6 +62,30 @@ function App() {
           <button className={getCSS("USER")} onClick={e=>onLogin(APOINTEE, handleResult)}>Apointee</button>
           <button className={getCSS("STOREOWNER")} onClick={e=>onLogin(APOINTER, handleResult)}>Store Owner</button>
         </div>
+
+          {/*
+           on app load:
+              - do a login callout for each person on the list
+                - add a delay so the login call resolves in a different order
+              - as the callouts resolve, update a state list, which gets rendered in a loop
+                - draw a button on the panel for each callout we are making
+                  - the button should show a loading spinner while its resolving and be unclickable
+              
+              - as the callouts are resolving, make the buttons clickable
+                - on click, go to the route/page for that user
+              
+        
+        */}
+
+        {/*
+           for each user:
+              <route path="(user name)">
+                <AuthProvider >
+                  <view>
+                <AuthProvider>
+              </route>
+        
+        */}
    
           <UserView/>
        
@@ -265,7 +295,7 @@ function Body({data, selected, selectLocation, refetchLocations}){
 
       {token ? <AppointmentList 
               appointments={getSelectedLocationAppointments(selected)} 
-              selected={selected}
+              selectedLocationId={selected}
               refetchLocations={refetchLocations}/> : <></>}
 
     </div>
@@ -320,20 +350,41 @@ function LocationList({locations = [], selectedLocationId = null, selectLocation
     })
   }
 
+  function _editStoreOwnerLocation(location){
+
+    const locations_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_LOCATION}` : ''
+    
+    setLoading(true);
+    editStoreOwnerLocation(location, token.key, locations_path)
+    .then(()=>{
+      refetchLocations()
+      //setShowNewLocationForm(false)
+    })
+    .catch((err)=>{console.log("err edit location", err)})
+    .finally(()=>{
+      setLoading(false);
+    })
+
+  }
+
+console.log(locations)
   return(<>
     {locations ? locations.map( (location, idx)=>
-        <LocationCard key={idx} {...location} 
+        <LocationCard key={idx} location={location}//{...location} 
           selectedLocationId={selectedLocationId} 
           selectLocation={selectLocation}
-          deleteLocation={_deleteLocation}/>) 
+          deleteLocation={_deleteLocation}
+          editStoreOwnerLocation={_editStoreOwnerLocation}/>) 
       : <></>}
 
      
       {token?.type === "STOREOWNER" ? 
         (showNewLocationForm ? 
+        <div className="location_card">
           <LocationForm 
-            cancelCreateLocation={e=>setShowNewLocationForm(false)} 
-            putStoreOwnerLocation={_putStoreOwnerLocation}/> : 
+            cancelLocationForm={e=>setShowNewLocationForm(false)} 
+            putStoreOwnerLocation={_putStoreOwnerLocation}/> 
+        </div>: 
           <button onClick={e=>setShowNewLocationForm(true)}>Add New Location</button>)
       : <></>}
 
@@ -341,26 +392,64 @@ function LocationList({locations = [], selectedLocationId = null, selectLocation
 }
 
 
-function LocationCard({info, address, id, selectedLocationId, selectLocation=()=>{}, deleteLocation=()=>{}}){
 
-  //console.log("selectedLocationID:", selectedLocationId)
+
+
+function LocationCard({
+ // info, address, id, LatLng, 
+  location,
+  selectedLocationId, 
+  selectLocation=()=>{}, 
+  deleteLocation=()=>{}, 
+  editStoreOwnerLocation=()=>{}}){
 
   const { token } = useAuth();  
 
+  const [isEdit, setIsEdit] = useState(false);
 
-  return(<div className={id===selectedLocationId ? "location_card location_card_selected" : "location_card"  } 
-              onClick={ e=>{selectLocation(id)}}>
-      {token?.type === "STOREOWNER" && id===selectedLocationId ? <button onClick={e=>{deleteLocation(id)}} className="cancel_new_appointment_btn">Delete Location</button> : <></>}
-      <div>info: {info}</div>
-      <div>address: {address}</div> 
+  useEffect(()=>setIsEdit(false), [token, location, selectedLocationId])
+
+  const {info, address, id, LatLng, } = location
+
+  return( <div className={id===selectedLocationId ? "location_card location_card_selected" : "location_card"  } 
+  onClick={ e=>{ selectLocation(id)}}>
+
+
+  { isEdit ? <> <LocationForm 
+            cancelLocationForm={e=>setIsEdit(false)} 
+            putStoreOwnerLocation={editStoreOwnerLocation}
+            form={ {info: info, address: address, LatLng: LatLng, id: id} }/></> 
+  :
+  
+  <>
+
+      {token?.type === "STOREOWNER" && id===selectedLocationId ? 
+          <div className="location_card_btns"> 
+            <button onClick={e=>deleteLocation(id)} className="">Delete Location</button>
+            <button onClick={e=>{setIsEdit(true)}
+              } className="">Edit Location</button>
+          </div>
+        : <></>}
+
+        <div>info: {info}</div>
+        <div>address: {address}</div> 
+
+  </>
+  }
   </div>);
 }
 
 const locationForm =  {address: "", info: ""}
 
-function LocationForm({cancelCreateLocation = ()=>{} , putStoreOwnerLocation = ()=>{} }){
+function LocationForm({
+  cancelLocationForm = ()=>{} , 
+  putStoreOwnerLocation = ()=>{},
+  form = locationForm
+ }){
 
-  const [ formFields, setFormFeilds ] = useState(locationForm)
+  //console.log("/////// FORM IS ", form)
+
+  const [ formFields, setFormFeilds ] = useState(form)
   const [loading, setLoading] = useState(false);
 
   const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() 
@@ -381,9 +470,10 @@ function LocationForm({cancelCreateLocation = ()=>{} , putStoreOwnerLocation = (
   }
 
 
-  return(<div className="location_card">
+  return(<>
+
      <form onSubmit={handleSubmit}>
-      <button onClick={cancelCreateLocation} className="cancel_new_appointment_btn">X</button>
+      <button onClick={cancelLocationForm} className="cancel_new_appointment_btn">X</button>
       <div className="form_row">
         address: <input name="address" value={formFields.address.trim()} className="appointment_form_input" onChange={handleChange} required /> 
       </div>
@@ -392,21 +482,29 @@ function LocationForm({cancelCreateLocation = ()=>{} , putStoreOwnerLocation = (
       </div>
       <input type="submit" value="Confirm" disabled={!areFieldsValid()}/>
     </form>
-  </div>)
+
+  </>)
 
 }
 
-function AppointmentList({appointments = [], selected = null, refetchLocations}){
+function AppointmentList({appointments = [], selectedLocationId = null, refetchLocations}){
 
   const { token } = useAuth();  
   const { config } = useConfig();
+
   const [loading, setLoading] = useState(false);
 
   const [showNew, setShowNew] = useState(false);
 
-  useEffect(()=>setShowNew(false), [selected])
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+
+  useEffect(()=>{
+    setShowNew(false)
+    setSelectedAppointmentId(null)
+  }, [selectedLocationId, token])
 
   console.log("TOKEN: ",token)
+  console.log("configs: ", config)
   console.log("APPOINTMENTS: ", appointments)
   
   function _deleteUserAppointment(appointment_id){
@@ -428,7 +526,7 @@ function AppointmentList({appointments = [], selected = null, refetchLocations})
     const appointments_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_APPOINTMENT}` : ''
 
     const apt = {
-      loc_id: selected ,
+      loc_id: selectedLocationId ,
       ...formFields
     }
     
@@ -446,15 +544,41 @@ function AppointmentList({appointments = [], selected = null, refetchLocations})
 
   }
 
+  function _updateAppointmentStatus(apt_id, new_status){
+
+    const appointments_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_APPOINTMENT}` : ''
+
+    const apt = {
+      apt_id: apt_id,
+      new_status: new_status
+    }
+    
+    setLoading(true);
+    updateAppointmentStatus(apt, token.key, appointments_path)
+    .then((res)=>{
+      setShowNew(false)
+      refetchLocations()
+      console.log("inserted apt: ", res)
+    })
+    .catch((err)=>{console.log("err delete appt", err)})
+    .finally(()=>{
+      setLoading(false);
+    })
+  }
 
 
   return(
     <div className="appointment_list_wrapper">
-     {token.type === "USER" ?  <button disabled={showNew} onClick={e=>setShowNew(true)} className="add_apt_btn">Create Appointment</button> : <></> }
+     {token.type === "USER" && selectedLocationId ? <button disabled={showNew} onClick={e=>setShowNew(true)} className="add_apt_btn">Create Appointment</button> : <></> }
       <div className="appointment_list">
         
-        {appointments.map((appointment, idx)=> //{id, date,end,start, status} id={id} date={date} end={end} start={start} status={status}     
-            <AppointmentCard key={idx} {...appointment} deleteUserAppointment={_deleteUserAppointment}/>)}
+        {appointments.map((appointment, idx)=>  
+            <AppointmentCard key={idx} {...appointment} 
+            deleteUserAppointment={_deleteUserAppointment} 
+            updateAppointmentStatus={_updateAppointmentStatus}
+            selectedLocationId={selectedLocationId}
+            selectedAppointmentId={selectedAppointmentId}
+            selectAppointment={ (id)=> setSelectedAppointmentId(id) }/>)}
          
         { token.type === "USER" && showNew ? 
         <AppointmentForm 
@@ -463,18 +587,72 @@ function AppointmentList({appointments = [], selected = null, refetchLocations})
       </div>
     </div>);
 }
+//const STATUS = ['Approved', 'In Progress', 'Completed', 'Canceled']
+function AppointmentCard({id, date,end,start, status, selectedLocationId, selectedAppointmentId,
+  deleteUserAppointment = () =>{}, 
+  updateAppointmentStatus = () =>{},
+  selectAppointment = () => {}
+  
+}){
 
-function AppointmentCard({id, date,end,start, status, deleteUserAppointment}){
+  const { token } = useAuth(); 
+  const { config } = useConfig();
 
-  const { token } = useAuth();  
+  const STATUS = config.STATUS
 
+  const [newStatus, setNewStatus] = useState(status)
+
+  const isSelected = id===selectedAppointmentId 
+
+  useEffect(()=>setNewStatus(status), [token, selectedLocationId, selectedAppointmentId])
+  
   return(
-    <div className="appointment_card">
-      <div className="form_row">date: {date} </div>
+    <div className={id===selectedAppointmentId ? "appointment_card appointment_card_selected" : "appointment_card"  }  onClick={e=> selectAppointment(id)}>
+      <div className="form_row">
+        <div>  date:  </div>
+        <div>  {date}  </div>
+      </div>
       <div className="form_row"> end: {end} </div>
       <div className="form_row">start: {start} </div>
-      <div>status: {status}</div>
+
+      <div>
+        status: 
+        {(()=>{
+          if(token.type === "STOREOWNER"){ // if its a storeowner user...
+            if(isSelected){                // ..and the appointment card is selected, show the status pickist
+              return <>                   
+              <select name="status" value={newStatus} onChange={e=>setNewStatus(e.target.value)}>
+                {STATUS.map((status,idx)=>
+                  <option key={idx} value={status}>{status}</option>) }                   
+              </select>
+              </>
+            }else{                        //otherwise show the status text
+              return <>{status}</>
+            }       
+          }else if(token.type === "USER"){
+            return <>{status}</>
+          }else{
+            return <></>
+          } 
+        })()}
+      
+      </div>
+
+      {(()=>{
+          const btn_css = isSelected  ? 'visible' : 'hidden'
+          if(token.type === "STOREOWNER"){ //when the user is a storeowner, show the 
+            return <><button style={{visibility: btn_css}} disabled={status === newStatus} onClick={e=>updateAppointmentStatus(id, newStatus)}>Update Status</button></>
+          }else if(token.type === "USER"){
+            return <><button style={{visibility: btn_css}} onClick={e=>deleteUserAppointment(id)}>Cancel</button></>
+          }else{
+            return <></>
+          } 
+      })()}
+
+        {/*
       {token.type === "USER" ? <button onClick={e=>deleteUserAppointment(id)}>Delete</button> : <></>}
+      {token.type === "STOREOWNER"  ? <button disabled={status === newStatus} onClick={e=>updateAppointmentStatus(id, newStatus)}>Update Status</button> : <></>}
+*/}
     </div>);
 }
 
@@ -523,5 +701,41 @@ function AppointmentForm({cancelCreateAppointment, createUserAppointment}){
 
 
 
+
+function LocationPanel({
+  onSubmit = ()=>{},
+  onCancel = ()=>{},
+  selectLocation=()=>{},
+  
+
+}){
+
+  return(<></>);
+
+}
+
+/*
+  {
+    ((b)=>{
+      const a = 7
+      console.log("dsfdsfsd", a, b)
+
+      if(a !== 7){
+        return <>BBBBB</>
+      }else return <>CCC</>
+    
+    })(8)  
+  }  {
+    ((b)=>{
+      const a = 7
+      console.log("dsfdsfsd", a, b)
+
+      if(a !== 7){
+        return <>BBBBB</>
+      }else return <>CCC</>
+    
+    })(8)  
+  }
+*/
 
 
