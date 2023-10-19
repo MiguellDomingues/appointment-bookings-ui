@@ -1,0 +1,151 @@
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100dvh;
+  width: 100dvw;
+}
+
+.header{
+  height: 10%;
+  width: 100%;
+  
+  padding: .5rem;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+}
+
+.body{
+  height: 85%;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+  display: flex;
+
+  
+}
+
+.body_map{
+  height: 100%;
+  width: 66.6666%;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+}
+
+.body_locations{
+  position: relative;
+  height: 100%;
+  width: 33.3333%;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.footer{
+  height: 5%;
+  width: 100%;
+  
+  padding: .5rem;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+}
+
+.user_picker{
+  position: absolute;
+  background-color: brown;
+  right: 0px;
+  padding: .5rem;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+}
+
+.location_card_selected{
+  border: 2px solid #000000;
+  background-color: lightblue;
+}
+
+
+.location_card{
+  position: relative;
+  width: 100%;
+  padding: .5rem;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.location_card:nth-child(even) {
+  background-color: #dddddd;
+}
+
+.user_type_selected{
+  color: blue;
+}
+
+.appointment_list{
+ 
+
+  display: flex;
+  
+
+}
+
+.appointment_list_wrapper{
+  
+  position: absolute;
+  bottom: 0;
+
+  padding: .5rem;
+  padding-top: 1.5rem;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+}
+
+.add_apt_btn{
+  position: absolute;
+  left: 0;
+  top: 0;
+
+}
+
+.appointment_card{
+
+  position: relative;
+
+  padding: .5rem;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.cancel_new_appointment_btn{
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+
+.appointment_card:nth-child(even) {
+  background-color: #dddddd;
+}
+
+.appointment_form_input{
+  max-width: 75px;
+  min-width: 75px;
+}
+
+.form_row{
+  display: flex;
+  justify-content: space-between;
+}
+
+
+
