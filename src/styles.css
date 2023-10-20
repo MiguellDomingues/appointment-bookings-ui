@@ -1,6 +1,9 @@
 .app {
   position: relative;
-  display: flex;
+}
+
+.page_wrapper{
+  
   flex-direction: column;
   align-items: center;
   height: 100dvh;
@@ -54,7 +57,7 @@
 }
 
 .user_picker{
-  position: absolute;
+  position: fixed;
   background-color: brown;
   right: 0px;
   padding: .5rem;
@@ -156,6 +159,15 @@
   right: 0;
   display: flex;
   flex-direction: column;
+}
+
+
+.show_view{
+  display: flex;
+}
+
+.hide_view{
+  display: none;
 }
 
 
