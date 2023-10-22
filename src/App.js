@@ -35,19 +35,10 @@ const accounts = [
 
 function App() {
 
-
   const [users, setUsers] = useState(accounts)
-
   const [selectedPage, setSelectedPage] = useState(0)
 
-  //console.log(users)
-
-
-  useEffect(()=>{
-
-  }, [])
-
-
+  useEffect(()=>{}, [])
 
  function handleUserLoginError(idx){
   return function(err){
@@ -81,18 +72,19 @@ function App() {
 
 
   return (<>
+
         <div className="user_picker">
           <div>select a user</div> 
-          {users.map( (account,idx)=><>
+          {users.map( (account,idx)=>
             <button 
               key={idx} 
               onClick={ !account.error ? e=>{setSelectedPage(idx)} : e=>{} }
               disabled={account.error}>
               {account.loading ? "loading..." : account.error ? "error": account.type}
-            </button></>)} 
+            </button>)} 
         </div>
 
-        {users.map( (account,idx)=><>
+        {users.map( (account,idx)=>
             <AuthProvider      
               key={idx}       
               credentials={account.credentials} 
@@ -101,7 +93,7 @@ function App() {
               onLogInFinally={handleUserLoginFinally(idx)}>
                 <div className={idx === selectedPage ? "show_view page_wrapper" : "hide_view page_wrapper"}><UserView/></div>
             </AuthProvider>
-          </>)}
+          )}
       </>);
 }
 
@@ -111,43 +103,22 @@ export default App;
 function UserView(){
 
   const { config } = useConfig()
-  const { token, loadingConfigs , loadingUser} = useAuth();
+  const { token } = useAuth();
 
-  const { fetchLocations } = useAPI()
+  const { fetchLocations, loading } = useAPI()
 
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
 
    /* track the id of the selected entity to update map/list*/
-   const [selectedLocation, setSelectedLocation] = useState();
-
-   function APIWrapper(CB, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){ 
-    setLoading(true)        //always set loading when callout begins
-    CB().then((result)=>{
-        //setError(false)     //successfull callouts will clear the previous err
-
-        successCB(result)
-    }).catch((err)=>{
-        console.log("ERROR: ", err)
-        //setError(true)      
-        errorCB(err)
-    }).finally(()=>{
-        setLoading(false)  //always unset loading when callout ends
-        finallyCB()
-    })
-}
+  const [selectedLocation, setSelectedLocation] = useState();
 
   useEffect( () => getPosts(), [token, config]);
 
-
 function getPosts(){
-
-  APIWrapper(
-    fetchLocations,
-        (results)=>setData(results.posts))}
-
-  return (<>
-       
+    fetchLocations().then((results)=>{setData(results.posts)})
+  }
+      
+  return (<>     
         <Header refetchLocations={getPosts}/>
         <Body
           data={data}
@@ -160,7 +131,9 @@ function getPosts(){
 }
 
 function Header({refetchLocations}){
+
   const { token } = useAuth();
+
   return( <div className="header">
     {token && token?.username ? <>Welcome{token.username}</> : <></> }
     <button onClick={e=>refetchLocations()}>Refresh</button>
@@ -179,7 +152,7 @@ function Body({
 
   const { token } = useAuth();
 
-  console.log("data: ", data)
+ //// console.log("data: ", data)
   //console.log("TOKEN: ",token)
 
   function getSelectedLocationAppointments(location_id){
@@ -232,53 +205,27 @@ function LocationList({
   refetchLocations = ()=>{} }){
 
   const { token } = useAuth();  
-  const { config } = useConfig();
-  const [loading, setLoading] = useState(false);
 
   const [showNewLocationForm, setShowNewLocationForm] = useState(false);
 
-  const { postLocation, deleteLocation, editLocation  } = useAPI()
+  const {loading,deleteLocation, editLocation, postLocation  } = useAPI()
 
-
-   function APIWrapper(CB, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){ 
-    setLoading(true)        //always set loading when callout begins
-    CB().then((result)=>{
-        //setError(false)     //successfull callouts will clear the previous err
-        successCB(result)
-    }).catch((err)=>{
-        console.log("ERROR: ", err)
-        //setError(true)      
-        errorCB(err)
-    }).finally(()=>{
-        setLoading(false)  //always unset loading when callout ends
-        finallyCB()
-    })
-}
 
   useEffect(()=>setShowNewLocationForm(false), [token, locations])
 
   function addLocation(new_location){
-    APIWrapper(
-      ()=>postLocation (new_location),
-      (result)=>{refetchLocations()}
-    )
+    postLocation({new_location},(result)=>{refetchLocations()})
   }
 
   function _deleteLocation(location_id){
-    APIWrapper(
-      ()=>deleteLocation (location_id),
-      (result)=>{refetchLocations()}
-    )
+      deleteLocation({location_id},(result)=>{refetchLocations()})  
   }
 
   function _editStoreOwnerLocation(location){
-    APIWrapper(
-      ()=> editLocation(location),
-      (result)=>{refetchLocations()}
-    )
+      editLocation({location},(result)=>{refetchLocations()})
   }
 
-console.log(locations)
+//console.log(locations)
   return(<>
     {locations ? locations.map( (location, idx)=>
         <LocationCard key={idx} location={location}//{...location} 
@@ -319,31 +266,27 @@ function LocationCard({
 
   const {info, address, id, LatLng, } = location
 
-  return( <div className={id===selectedLocationId ? "location_card location_card_selected" : "location_card"  } 
-  onClick={ e=>{ selectLocation(id)}}>
+  return( 
+    <div className={id===selectedLocationId ? "location_card location_card_selected" : "location_card"  } 
+        onClick={ e=>{ selectLocation(id)}}>
 
 
-  { isEdit ? <> <LocationForm 
-            cancelLocationForm={e=>setIsEdit(false)} 
-            putStoreOwnerLocation={editStoreOwnerLocation}
-            form={ {info: info, address: address, LatLng: LatLng, id: id} }/></> 
-  :
-  
-  <>
-
+    { isEdit ? <>
+      <LocationForm 
+        cancelLocationForm={e=>setIsEdit(false)} 
+        putStoreOwnerLocation={editStoreOwnerLocation}
+        form={ {info: info, address: address, LatLng: LatLng, id: id} }/></> 
+    :
+    <>
       {token?.type === "STOREOWNER" && id===selectedLocationId ? 
-          <div className="location_card_btns"> 
-            <button onClick={e=>deleteLocation(id)} className="">Delete Location</button>
-            <button onClick={e=>{setIsEdit(true)}
-              } className="">Edit Location</button>
-          </div>
-        : <></>}
-
+        <div className="location_card_btns"> 
+          <button onClick={e=>deleteLocation(id)} className="">Delete Location</button>
+          <button onClick={e=>{setIsEdit(true)}} className="">Edit Location</button>
+        </div>
+     : <></>}
         <div>info: {info}</div>
         <div>address: {address}</div> 
-
-  </>
-  }
+  </>}
   </div>);
 }
 
@@ -358,11 +301,7 @@ function LocationForm({
   //console.log("/////// FORM IS ", form)
 
   const [ formFields, setFormFeilds ] = useState(form)
-  const [loading, setLoading] = useState(false);
-
   const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() 
-
-
 
   function handleChange(e){
     setFormFeilds({
@@ -376,7 +315,6 @@ function LocationForm({
     console.log(formFields);
     putStoreOwnerLocation({...formFields, icons: []}); //ignore the icons for now
   }
-
 
   return(<>
 
@@ -400,8 +338,6 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
   const { token } = useAuth();  
   const { config } = useConfig();
 
-  const [loading, setLoading] = useState(false);
-
   const [showNew, setShowNew] = useState(false);
 
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
@@ -411,61 +347,40 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
     setSelectedAppointmentId(null)
   }, [selectedLocationId, token])
 
-  console.log("TOKEN: ",token)
-  console.log("configs: ", config)
-  console.log("APPOINTMENTS: ", appointments)
+  //console.log("TOKEN: ",token)
+ // console.log("configs: ", config)
+  //console.log("APPOINTMENTS: ", appointments)
 
-  const { postAppointment, deleteAppointment,  editAppointmentStatus } = useAPI()
+  const { loading, postAppointment, deleteAppointment, editAppointmentStatus } = useAPI()
 
 
-  function APIWrapper(CB, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){ 
-   setLoading(true)        //always set loading when callout begins
-   CB().then((result)=>{
-       //setError(false)     //successfull callouts will clear the previous err
-       successCB(result)
-   }).catch((err)=>{
-       console.log("ERROR: ", err)
-       //setError(true)      
-       errorCB(err)
-   }).finally(()=>{
-       setLoading(false)  //always unset loading when callout ends
-       finallyCB()
-   })
-}
-  
-function _createUserAppointment(formFields){
+  function _createUserAppointment(formFields){
 
-  APIWrapper(
-    ()=> postAppointment ({
+    const new_appointment = {
       loc_id: selectedLocationId ,
       ...formFields
-    }),
-    (result)=>{
+    }
+
+    postAppointment({new_appointment},(result)=>{
       setShowNew(false);
+      refetchLocations();})
+  }
+
+  function _updateAppointmentStatus(apt_id, new_status){
+    editAppointmentStatus({apt_id, new_status},(result)=>{
+      setSelectedAppointmentId(null);
       refetchLocations();
   })
-}
 
-function _updateAppointmentStatus(apt_id, new_status){
-
-  APIWrapper(
-    ()=>  editAppointmentStatus (apt_id, new_status),
-    (result)=>{
-      setShowNew(false);
-      refetchLocations();
-  })
-  
-}
+  }
 
   function _deleteUserAppointment(appointment_id){
-    APIWrapper(
-      ()=> deleteAppointment (appointment_id),
-      (result)=>{refetchLocations();})
+      deleteAppointment({appointment_id},(result)=>{refetchLocations()})
   }
 
   return(
     <div className="appointment_list_wrapper">
-     {token.type === "USER" && selectedLocationId ? <button disabled={showNew} onClick={e=>setShowNew(true)} className="add_apt_btn">Create Appointment</button> : <></> }
+      {token.type === "USER" && selectedLocationId ? <button disabled={showNew} onClick={e=>setShowNew(true)} className="add_apt_btn">Create Appointment</button> : <></> }
       <div className="appointment_list">
         
         {appointments.map((appointment, idx)=>  
@@ -475,7 +390,7 @@ function _updateAppointmentStatus(apt_id, new_status){
             selectedLocationId={selectedLocationId}
             selectedAppointmentId={selectedAppointmentId}
             selectAppointment={ (id)=> setSelectedAppointmentId(id) }/>)}
-         
+          
         { token.type === "USER" && showNew ? 
         <AppointmentForm 
           cancelCreateAppointment={()=>{setShowNew(false)}} 
@@ -484,11 +399,12 @@ function _updateAppointmentStatus(apt_id, new_status){
     </div>);
 }
 
-function AppointmentCard({id, date,end,start, status, selectedLocationId, selectedAppointmentId,
+function AppointmentCard({id, date,end,start, status, 
+  selectedLocationId, 
+  selectedAppointmentId,
   deleteUserAppointment = () =>{}, 
   updateAppointmentStatus = () =>{},
   selectAppointment = () => {}
-  
 }){
 
   const { token } = useAuth(); 
@@ -545,10 +461,6 @@ function AppointmentCard({id, date,end,start, status, selectedLocationId, select
           } 
       })()}
 
-        {/*
-      {token.type === "USER" ? <button onClick={e=>deleteUserAppointment(id)}>Delete</button> : <></>}
-      {token.type === "STOREOWNER"  ? <button disabled={status === newStatus} onClick={e=>updateAppointmentStatus(id, newStatus)}>Update Status</button> : <></>}
-*/}
     </div>);
 }
 

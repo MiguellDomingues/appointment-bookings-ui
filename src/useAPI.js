@@ -1,4 +1,5 @@
 import { useAuth, useConfig} from './AuthProvider'
+import { useState } from 'react'
 
 async function fetchWrapper(url, options){
     return new Promise( (resolve, reject) => { 
@@ -15,12 +16,29 @@ async function fetchWrapper(url, options){
 function useAPI(){
 
     const { config } = useConfig()
-    const { token, loadingConfigs } = useAuth();
+    const { token } = useAuth();
+
+    const [loading, setLoading] = useState(false)
 
     const locations_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_LOCATION}` : ''
     const appointments_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_APPOINTMENT}` : ''
 
-
+    function APIWrapper(CB, params, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){
+        setLoading(true)        //always set loading when callout begins
+        params = Object.keys(params).map(e=>params[e])
+        CB(...params).then((result)=>{
+            //setError(false)     //successfull callouts will clear the previous err
+            successCB(result)
+        }).catch((err)=>{
+            console.log("ERROR: ", err)
+            //setError(true)      
+            errorCB(err)
+        }).finally(()=>{
+            setLoading(false)  //always unset loading when callout ends
+            finallyCB()
+        })
+    }
+  
     const fetchGuestLocations = async () => fetchWrapper(locations_path, null)
 
     const fetchUserLocations = async (key) => fetchWrapper(`${locations_path}?key=${key}`, null)
@@ -110,10 +128,6 @@ function useAPI(){
         'Content-Type': 'application/json'
     }})
 
-    
-
-
-
     function fetchLocations(){
         if(!config){
             return new Promise( reject => reject("") )
@@ -127,11 +141,17 @@ function useAPI(){
             return fetchGuestLocations()
         }
     }
-    
 
+    
     return{
-        fetchLocations, postLocation ,deleteLocation,editLocation,
-        postAppointment, deleteAppointment, editAppointmentStatus
+        loading,
+        deleteAppointment:      (params={}, ...args )=>APIWrapper(deleteAppointment , params, ...args),
+        fetchLocations         ,
+        deleteLocation:         (params={}, ...args )=>APIWrapper(deleteLocation , params, ...args),
+        editLocation:           (params={}, ...args )=>APIWrapper(editLocation , params, ...args),
+        postAppointment:        (params={}, ...args )=>APIWrapper(postAppointment, params, ...args),
+        postLocation:           (params={}, ...args )=>APIWrapper(postLocation, params, ...args),
+        editAppointmentStatus:  (params={}, ...args )=>APIWrapper(editAppointmentStatus, params, ...args)
     }
 
 }
@@ -139,149 +159,23 @@ function useAPI(){
 export default useAPI
 
 /*
+ const fetchClientConfigs = () => {
 
-const POST_USER_APPOINTMENT_FAILURE = {
-  success:false,
-  reason: "failed to post user appointment"
-}
-
-export const postUserAppointment = (appointment, key,path) => {
-
-  console.log("post user appointment mock:")
-  console.log("appointment: ", appointment)
-  console.log("key: ", key)
-
-  return new Promise( (resolve, reject) => { 
-
-    const request_body = {
-      loc_id:     appointment.loc_id,
-      user_id:    key,
-      date:       appointment.date,
-      start_time: appointment.start_time,
-      end_time:   appointment.end_time
-    }
-
-    fetch(path + '?key=' + key, {
-      method: 'POST',
-      body: JSON.stringify(request_body),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(((res) => res.json()))
-    .then((data) => {
-
-      console.log("post user appointment SERVER RESPONSE:", data)
+        return new Promise( (resolve, reject) => {
       
-      if(data){
-        data.success = true
-        return resolve(data)
+          fetch(ENDPOINT_URL_CONFIGS)
+          .then((res) => res.json())
+          .then((data) => {
+            data.success = true
+           // console.log("fetch config: ", data)
+            return resolve(data);
+          })
+          .catch((error) => {
+           // console.log('Error fetching configs', error)
+            return reject(GET_CONFIGS_FAILURE);
+            //
+          });
+        });
       }
-
-      return reject(POST_USER_APPOINTMENT_FAILURE)
-    })
-    .catch((error) => {
-      console.log('Error Posting User Appointment.', error);
-      return reject(POST_USER_APPOINTMENT_FAILURE)
-    });
-
-});}
-
-
-const DELETE_USER_APPOINTMENT_FAILURE = {
-  success:false,
-  reason: "failed to deletet user appointment"
-}
-
-export const deleteUserAppointment = (appointment_id, key,path) => {
-
-  console.log("delete user appointment mock:")
-  console.log("appointment id: ", appointment_id)
-  console.log("key: ", key)
-  console.log("path: ", path)
-
-  return new Promise( (resolve, reject) => { 
-
-    const request_body = {
-      apt_id:     appointment_id,
-      user_id:    key,
-    }
-    
-    console.log("deleteUserApt: ", request_body)
-
-      fetch(path + '?key=' + key, {
-      method: 'DELETE',
-      body: JSON.stringify(request_body),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(((res) => res.json()))
-    .then((data) => {
       
-      console.log("delete user appointment SERVER RESPONSE:", data)
-      
-      if(data){
-        data.success = true
-        return resolve(data)
-      }
-
-      return reject(DELETE_USER_APPOINTMENT_FAILURE)
-    })
-    .catch((error) => {
-      console.log('Error Posting User Appointment.', error);
-      return reject(DELETE_USER_APPOINTMENT_FAILURE)
-    });
-
-});}
-
-
-
-
-const PATCH_STOREOWNER_APPOINTMENT_FAILURE = {
-  success:false,
-  reason: "failed to edit storeowner location"
-}
-
-export const updateAppointmentStatus = (payload, key,path) => {
-
-  console.log("edit storeowner appointment:")
-  console.log("apt_id: ",     payload.apt_id)
-  console.log("new_status: ", payload.new_status)
-  console.log("storeowner key: ", key)
-
-  return new Promise( (resolve, reject) => { 
-
-    const request_body = {
-      storeowner_id:    key, 
-      ...payload
-    }
-
-    console.log("updateAppointmentStatus SERVER REQUEST BODY:", request_body)
-
-    fetch(path+ '?key=' + key, {
-      method: 'PATCH',
-      body: JSON.stringify(request_body),
-      headers: { 'Content-Type': 'application/json'}
-    })
-    .then(((res) => res.json()))
-    .then((data) => {
-
-      console.log("updateAppointmentStatus SERVER RESPONSE:", data)
-      
-      if(data){
-        data.success = true
-        return resolve(data.appointment)
-      }
-
-      return reject(PATCH_STOREOWNER_APPOINTMENT_FAILURE)
-    })
-    .catch((error) => {
-      console.log('Error posting storeowner location.', error);
-      return reject(PATCH_STOREOWNER_APPOINTMENT_FAILURE)
-    });
-
-});}
-
 */
-

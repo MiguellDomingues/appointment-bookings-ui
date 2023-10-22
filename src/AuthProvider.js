@@ -3,8 +3,8 @@ import {useEffect,createContext } from "react";
 
 import React from 'react'
 
-//import { auth } from '../utils/API/auth'
-//import { configs } from '../utils/API/configs'
+
+
 
 const AuthContext = createContext(null);
 
@@ -23,7 +23,7 @@ export const AuthProvider = ({
     //const { startSession, registerUser, endSession } = auth
     //const { fetchClientConfigs } = configs
 
-    const [loading, setLoading] = React.useState(false);
+   // const [loading, setLoading] = React.useState(false);
 
     const [loadingUser, setLoadingUser] = React.useState(false);
 
@@ -43,8 +43,7 @@ export const AuthProvider = ({
       }else{
         onLogInSuccess(null)
       }
-
-     
+   
     }
 
     const failure = (r) => {
@@ -54,25 +53,40 @@ export const AuthProvider = ({
 
     const finish = (r) => {
      // console.log("FINISH CONFIG")
-      setLoading(false)
+    //  setLoading(false)
     }
 
+    /*
+    const _fetchClientConfigs = () =>{
+console.log("******************************")
+      fetchClientConfigs({},(configs)=>{
+        setConfig(configs); 
+        if(credentials){
+          internalLogOn(credentials, configs)
+        }else{
+          onLogInSuccess(null)
+        }
+      })
+
+    }
+
+    */
     useEffect( () => {
        // console.log("USEFFECT")
 
-     
+      // _fetchClientConfigs()
 
         /* this is the pattern utilized for all async calls in functional components 
         prevents useEffect() from firing twice on init */
          // if(dataFetchedRef.current) return
  
           const dataFetch = async () => {    
-            setLoading(true) 
-            await fetchClientConfigs(null).then(success, failure).finally(finish)  
-          };
+          // setLoading(true) 
+           await _fetchClientConfigs(null).then(success, failure).finally(finish)  
+         };
   
          // dataFetchedRef.current = true;
-          dataFetch();
+         dataFetch();
       }, []);
 
       /*
@@ -140,7 +154,6 @@ export const AuthProvider = ({
     const value = {
       token,
       config,
-      loadingConfigs: loading,
       loadingUser: loadingUser,
       onLogin: handleLogin,
       onLogout: handleLogout,
@@ -292,7 +305,7 @@ const GET_CONFIGS_FAILURE =
   reason: "fetching config failed"
 }
 
-const fetchClientConfigs = (key) => {
+const _fetchClientConfigs = (key) => {
 
   return new Promise( (resolve, reject) => {
 
@@ -310,64 +323,6 @@ const fetchClientConfigs = (key) => {
     });
   });
 }
-
-const GET_GUEST_POSTS_FAILURE = 
-{
-  success: false, 
-  reason: "session expired GUEST. please refresh your browser"
-}
-
-
-const GET_USER_POSTS_FAILURE = 
-{
-  success: false, 
-  reason: "session expired USER. please refresh your browser"
-}
-
-const GET_STOREOWNER_POSTS_FAILURE = 
-{
-  success: false, 
-  reason: "session expired STOREOWNER. please refresh your browser"
-}
-
-
-
-const POST_USER_APPOINTMENT_FAILURE = {
-  success:false,
-  reason: "failed to post user appointment"
-}
-
-const DELETE_USER_APPOINTMENT_FAILURE = {
-  success:false,
-  reason: "failed to deletet user appointment"
-}
-
-
-const PATCH_STOREOWNER_APPOINTMENT_FAILURE = {
-  success:false,
-  reason: "failed to edit storeowner location"
-}
-
-
-
-const PATCH_STOREOWNER_LOCATION_FAILURE = {
-  success:false,
-  reason: "failed to edit storeowner location"
-}
-
-
-const POST_STOREOWNER_LOCATION_FAILURE = {
-  success:false,
-  reason: "failed to post storeowner location"
-}
-
-
-
-const DELETE_STOREOWNER_LOCATION_FAILURE = {
-  success:false,
-  reason: "failed to deletet storeowner location"
-}
-
 
 
 
