@@ -157,7 +157,10 @@ console.log("******************************")
       loadingUser: loadingUser,
       onLogin: handleLogin,
       onLogout: handleLogout,
-      onRegistration: handleRegistration
+      onRegistration: handleRegistration,
+      isUser: ()=> token && token?.type === "USER",
+      isStoreOwner: ()=> token && token?.type === "STOREOWNER",
+      isGuest: ()=> !!token
     };
   
    //console.log("auth provider:", value)

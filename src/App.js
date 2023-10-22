@@ -99,7 +99,6 @@ function App() {
 
 export default App;
 
-
 function UserView(){
 
   const { config } = useConfig()
@@ -150,48 +149,40 @@ function Body({
   selectLocation, 
   refetchLocations}){
 
-  const { token } = useAuth();
-
- //// console.log("data: ", data)
-  //console.log("TOKEN: ",token)
+  const { isUser, isStoreOwner } = useAuth();
 
   function getSelectedLocationAppointments(location_id){
 
     console.log("selected: ", location_id)
 
+    const selected_location = data.find(({id})=>id === location_id)
+
     if(!location_id){ //if no location is selected
       return [];
     }
-
-    const selected_location = data.find(({id})=>id === location_id)
-
-    if(!selected_location){  //if no matching location was found for a selection (this CAN HAPPEN WHEN SWITCHING USERS)
-      
-      return [];
-    }
-
     return selected_location?.appointments
-
   }
 
   return(
   <div className="body">
+
     <div className="body_map">
       <MyMap posts={data} selected={selected} handleSelectedLocation={selectLocation} />
     </div>
+
     <div className="body_locations">
+      <LocationList 
+        locations={data}  
+        selectedLocationId={selected}  
+        selectLocation={selectLocation}
+        refetchLocations={refetchLocations}/>
 
-        <LocationList 
-          locations={data}  
-          selectedLocationId={selected}  
-          selectLocation={selectLocation}
-          refetchLocations={refetchLocations}/>
-
-      {token ? <AppointmentList 
-              appointments={getSelectedLocationAppointments(selected)} 
-              selectedLocationId={selected}
-              refetchLocations={refetchLocations}/> : <></>}
-
+      {isUser() || isStoreOwner() ? 
+        <AppointmentList 
+          appointments={getSelectedLocationAppointments(selected)} 
+          selectedLocationId={selected}
+          refetchLocations={refetchLocations}/> : 
+        <></>}
     </div>
 
   </div>);
@@ -204,14 +195,14 @@ function LocationList({
   selectLocation = ()=>{}, 
   refetchLocations = ()=>{} }){
 
-  const { token } = useAuth();  
+  const { isStoreOwner } = useAuth();  
 
   const [showNewLocationForm, setShowNewLocationForm] = useState(false);
 
   const {loading,deleteLocation, editLocation, postLocation  } = useAPI()
 
 
-  useEffect(()=>setShowNewLocationForm(false), [token, locations])
+  useEffect(()=>setShowNewLocationForm(false), [locations])
 
   function addLocation(new_location){
     postLocation({new_location},(result)=>{refetchLocations()})
@@ -236,13 +227,13 @@ function LocationList({
       : <></>}
 
      
-      {token?.type === "STOREOWNER" ? 
+      {isStoreOwner() ? 
         (showNewLocationForm ? 
-        <div className="location_card">
-          <LocationForm 
-            cancelLocationForm={e=>setShowNewLocationForm(false)} 
-            putStoreOwnerLocation={addLocation}/> 
-        </div>: 
+          <div className="location_card">
+            <LocationForm 
+              cancelLocationForm={e=>setShowNewLocationForm(false)} 
+              putStoreOwnerLocation={addLocation}/> 
+          </div> : 
           <button onClick={e=>setShowNewLocationForm(true)}>Add New Location</button>)
       : <></>}
 
@@ -258,35 +249,38 @@ function LocationCard({
   deleteLocation=()=>{}, 
   editStoreOwnerLocation=()=>{}}){
 
-  const { token } = useAuth();  
+  const { isStoreOwner } = useAuth();  
 
   const [isEdit, setIsEdit] = useState(false);
 
-  useEffect(()=>setIsEdit(false), [token, location, selectedLocationId])
+  useEffect(()=>setIsEdit(false), [location, selectedLocationId])
 
   const {info, address, id, LatLng, } = location
+
+  const isLocationSelected = ()=> id===selectedLocationId
 
   return( 
     <div className={id===selectedLocationId ? "location_card location_card_selected" : "location_card"  } 
         onClick={ e=>{ selectLocation(id)}}>
-
+        
 
     { isEdit ? <>
       <LocationForm 
         cancelLocationForm={e=>setIsEdit(false)} 
         putStoreOwnerLocation={editStoreOwnerLocation}
-        form={ {info: info, address: address, LatLng: LatLng, id: id} }/></> 
+        form={ {...location} }/></> 
     :
     <>
-      {token?.type === "STOREOWNER" && id===selectedLocationId ? 
+      {isStoreOwner() && isLocationSelected() ? 
         <div className="location_card_btns"> 
           <button onClick={e=>deleteLocation(id)} className="">Delete Location</button>
           <button onClick={e=>{setIsEdit(true)}} className="">Edit Location</button>
         </div>
      : <></>}
+
         <div>info: {info}</div>
         <div>address: {address}</div> 
-  </>}
+      </>}
   </div>);
 }
 
@@ -297,8 +291,6 @@ function LocationForm({
   putStoreOwnerLocation = ()=>{},
   form = locationForm
  }){
-
-  //console.log("/////// FORM IS ", form)
 
   const [ formFields, setFormFeilds ] = useState(form)
   const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() 
@@ -335,8 +327,7 @@ function LocationForm({
 
 function AppointmentList({appointments = [], selectedLocationId = null, refetchLocations}){
 
-  const { token } = useAuth();  
-  const { config } = useConfig();
+  const { isUser } = useAuth();  
 
   const [showNew, setShowNew] = useState(false);
 
@@ -345,11 +336,8 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
   useEffect(()=>{
     setShowNew(false)
     setSelectedAppointmentId(null)
-  }, [selectedLocationId, token])
+  }, [selectedLocationId]) // when user selects a new location, close new appointment panel and clear the selected appointment
 
-  //console.log("TOKEN: ",token)
- // console.log("configs: ", config)
-  //console.log("APPOINTMENTS: ", appointments)
 
   const { loading, postAppointment, deleteAppointment, editAppointmentStatus } = useAPI()
 
@@ -380,9 +368,12 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
 
   return(
     <div className="appointment_list_wrapper">
-      {token.type === "USER" && selectedLocationId ? <button disabled={showNew} onClick={e=>setShowNew(true)} className="add_apt_btn">Create Appointment</button> : <></> }
+      {isUser() && selectedLocationId ? 
+        <button disabled={showNew} onClick={e=>setShowNew(true)} className="add_apt_btn">Create Appointment</button> : 
+      <></> }
+
       <div className="appointment_list">
-        
+
         {appointments.map((appointment, idx)=>  
             <AppointmentCard key={idx} {...appointment} 
             deleteUserAppointment={_deleteUserAppointment} 
@@ -391,10 +382,11 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
             selectedAppointmentId={selectedAppointmentId}
             selectAppointment={ (id)=> setSelectedAppointmentId(id) }/>)}
           
-        { token.type === "USER" && showNew ? 
+        { isUser() && showNew ? 
         <AppointmentForm 
           cancelCreateAppointment={()=>{setShowNew(false)}} 
-          createUserAppointment={_createUserAppointment}/>: <></>}     
+          createUserAppointment={_createUserAppointment}/>
+        : <></>}     
       </div>
     </div>);
 }
@@ -407,7 +399,7 @@ function AppointmentCard({id, date,end,start, status,
   selectAppointment = () => {}
 }){
 
-  const { token } = useAuth(); 
+  const { isUser, isStoreOwner } = useAuth(); 
   const { config } = useConfig();
 
   const STATUS = config.STATUS
@@ -416,7 +408,8 @@ function AppointmentCard({id, date,end,start, status,
 
   const isSelected = id===selectedAppointmentId 
 
-  useEffect(()=>setNewStatus(status), [token, selectedLocationId, selectedAppointmentId])
+  useEffect(()=>setNewStatus(status), 
+    [selectedLocationId, selectedAppointmentId]) // when user selects a new appointment or location, reset the form
   
   return(
     <div className={id===selectedAppointmentId ? "appointment_card appointment_card_selected" : "appointment_card"  }  onClick={e=> selectAppointment(id)}>
@@ -430,7 +423,7 @@ function AppointmentCard({id, date,end,start, status,
       <div>
         status: 
         {(()=>{
-          if(token.type === "STOREOWNER"){ // if its a storeowner user...
+          if(isStoreOwner()){ // if its a storeowner user...
             if(isSelected){                // ..and the appointment card is selected, show the status pickist
               return <>                   
               <select name="status" value={newStatus} onChange={e=>setNewStatus(e.target.value)}>
@@ -441,7 +434,7 @@ function AppointmentCard({id, date,end,start, status,
             }else{                        //otherwise show the status text
               return <>{status}</>
             }       
-          }else if(token.type === "USER"){
+          }else if(isUser()){
             return <>{status}</>
           }else{
             return <></>
@@ -452,9 +445,9 @@ function AppointmentCard({id, date,end,start, status,
 
       {(()=>{
           const btn_css = isSelected  ? 'visible' : 'hidden'
-          if(token.type === "STOREOWNER"){ //when the user is a storeowner, show the 
+          if(isStoreOwner()){ //when the user is a storeowner, show the 
             return <><button style={{visibility: btn_css}} disabled={status === newStatus} onClick={e=>updateAppointmentStatus(id, newStatus)}>Update Status</button></>
-          }else if(token.type === "USER"){
+          }else if(isUser()){
             return <><button style={{visibility: btn_css}} onClick={e=>deleteUserAppointment(id)}>Cancel</button></>
           }else{
             return <></>
