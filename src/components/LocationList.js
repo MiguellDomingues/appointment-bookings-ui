@@ -3,6 +3,8 @@ import {useState, useEffect } from 'react'
 import { useAuth } from '../AuthProvider'
 import useAPI from '../useAPI'
 
+import IconList from './IconList'
+
 import '../styles.css';
 
 const LocationFormState = Object.freeze({
@@ -27,6 +29,8 @@ function LocationList({
     refetchLocations = ()=>{} }){
   
     const { isStoreOwner } = useAuth();  
+
+    //
   
     const {loading, deleteLocation, editLocation, postLocation  } = useAPI()
   
@@ -61,7 +65,7 @@ function LocationList({
     </>)
 }
 
-function LocationPanel({ //a panel encapsulates the different states of the location card
+function LocationPanel({ //a panel encapsulates the different states of a location card
     location = {},
     isLocationSelected = false,
     selectLocation=()=>{}, 
@@ -103,6 +107,7 @@ function LocationPanel({ //a panel encapsulates the different states of the loca
                 </>
             case LocationPanelState.Data:
                 return<>
+                    <IconList icons={location.icons}/>
                     <div>info: {info}</div>
                     <div>address: {address}</div>
                     {isStoreOwner() && isLocationSelected ? 
@@ -158,34 +163,4 @@ function LocationForm({
     </>)
 }
 
-
 export default LocationList
-
-  
-
- /*
-
-
-  function LocationCard({
-    info, 
-    address,
-    isLocationSelected,
-    _deleteLocation,
-
- }){
-
-  const { isStoreOwner } = useAuth();  
-
-  return(<>
-    <div>info: {info}</div>
-    <div>address: {address}</div>
-    {isStoreOwner() && isLocationSelected ? 
-        <div className="location_card_btns"> 
-             <button onClick={e=>_deleteLocation(id)} className="">Delete Location</button>
-             <button onClick={e=>{setMode(LocationPanelState.Edit)}} className="">Edit Location</button>
-        </div> : <></>}
-</>);
- }
-  
-
-*/

@@ -1,10 +1,12 @@
-import {useState, useEffect } from 'react'
+import {useState, useEffect, useMemo } from 'react'
 
-import { useAuth, AuthProvider,useConfig} from './AuthProvider'
+import { useAuth, AuthProvider,useConfig, } from './AuthProvider'
 
 import LocationList from './components/LocationList'
 import AppointmentList from './components/AppointmentList'
 import MyMap from './components/Map.tsx'
+
+import { IconList, Icons } from './components/IconList'
 
 import useAPI from './useAPI'
 import './styles.css';
@@ -24,13 +26,13 @@ const accounts = [
   },
   {
     type: null,
-    credentials: {username: "aaa", password: "aaa"} ,
+    credentials: {username: "a", password: "a"} ,
     loading: true,
     error: false,
   }, 
   {
     type: null,
-    credentials: {username: "aaaa", password: "aaaa"},
+    credentials: {username: "d", password: "d"},
     loading: true,
     error: false,
   },         
@@ -113,19 +115,74 @@ function UserView(){
   const [data, setData] = useState([]);
 
    /* track the id of the selected entity to update map/list*/
-  const [selectedLocation, setSelectedLocation] = useState();
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedIcons, setSelectedIcons] = useState([]);
+
+  //const locationsIcons = useMemo(() => getLocationIcons(data), [data]);
 
   useEffect( () => getPosts(), [token, config]);
 
-function getPosts(){
+  function getPosts(){
     fetchLocations().then((results)=>{setData(results.posts)})
   }
-      
+
+  function getIconsForLocations(locations = []){ //create a list of possible icons for the locations
+    const locationIcons = []
+    locations.forEach((location)=>{ //for each location
+      location?.icons?.forEach((icon)=>{ //for each icon describing a location
+        !locationIcons.includes(icon) && locationIcons.push(icon) //
+      })
+    })
+
+    return locationIcons;
+  }
+
+  function toggleIcon(icon_key = ""){
+
+    console.log(icon_key)
+    if(!Object.keys(Icons).includes(icon_key)){
+      return
+    }
+   
+    if(selectedIcons.includes(icon_key)){
+     // setSelectedIcons(...selectedIcons.filter(icon=>icon !== icon_key) )
+      setSelectedIcons( (selectedIcons)=>selectedIcons.filter(icon=>icon !== icon_key) )
+    }else{
+     // setSelectedIcons([...selectedIcons, icon_key])
+      setSelectedIcons( (selectedIcons)=>[...selectedIcons, icon_key] )
+    }
+  }
+
+  function filterLocationsBySelectedIcons(locations = [], selected_icons = []){
+
+    if(selected_icons.length === 0){
+      return locations;
+    }
+
+    const filtered_locations = [];
+    locations.forEach((location)=>{
+      location.icons.some((location_icon)=>{
+        if(selected_icons.includes(location_icon)){
+          filtered_locations.push(location)
+          return true;
+        }else{
+          return false;
+        }})
+    })
+
+    return filtered_locations;
+  }
+
   return (<>     
         <Header refetchLocations={getPosts}/>
         <Body
-          data={data}
-          selected={selectedLocation}
+          locations={filterLocationsBySelectedIcons(data,selectedIcons)}
+
+          locationsIcons={getIconsForLocations(data)}
+          toggleIcon={toggleIcon}
+          selectedIcons={selectedIcons}
+
+          selectedLocation={selectedLocation}
           selectLocation={(id)=>{setSelectedLocation(id)}}
           refetchLocations={getPosts}/>
         <Footer/>   
@@ -148,10 +205,15 @@ function Footer(){
 }
 
 function Body({
-  data, 
-  selected, 
-  selectLocation, 
-  refetchLocations}){
+  locations = [], 
+  selectedLocation = null, 
+  locationsIcons = [],
+  selectedIcons = [],
+  
+  selectLocation = ()=>{}, 
+  refetchLocations = ()=>{},
+  toggleIcon = () =>{}
+}){
 
   const { isUser, isStoreOwner } = useAuth();
 
@@ -159,7 +221,7 @@ function Body({
 
     console.log("selected: ", location_id)
 
-    const selected_location = data.find(({id})=>id === location_id)
+    const selected_location = locations.find(({id})=>id === location_id)
 
     if(!location_id){ //if no location is selected
       return [];
@@ -167,24 +229,33 @@ function Body({
     return selected_location?.appointments
   }
 
+
+
   return(
   <div className="body">
 
     <div className="body_map">
-      <MyMap posts={data} selected={selected} handleSelectedLocation={selectLocation} />
+      {/*<MyMap posts={locations} selected={selected} handleSelectedLocation={selectLocation} />*/}
     </div>
 
     <div className="body_locations">
+      <div className="icon_filter_container">
+        <IconList 
+          iconSize={20}
+          icons={locationsIcons}
+          selectedIcons={selectedIcons }
+          toggleIcon={toggleIcon}/>
+      </div>
       <LocationList 
-        locations={data}  
-        selectedLocationId={selected}  
+        locations={locations}  
+        selectedLocationId={selectedLocation}  
         selectLocation={selectLocation}
         refetchLocations={refetchLocations}/>
 
       {isUser() || isStoreOwner() ? //only show the appointments to user, storeowner user types
         <AppointmentList 
-          appointments={getSelectedLocationAppointments(selected)} 
-          selectedLocationId={selected}
+          appointments={getSelectedLocationAppointments(selectedLocation)} 
+          selectedLocationId={selectedLocation}
           refetchLocations={refetchLocations}/> : 
         <></>}
     </div>

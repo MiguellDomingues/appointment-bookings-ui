@@ -39,12 +39,18 @@
 .body_locations{
   position: relative;
   height: 100%;
+  padding-top: 2rem;
   width: 33.3333%;
   box-sizing: border-box;
   border: 1px solid #dddddd;
-
   display: flex;
   flex-direction: column;
+}
+
+.icon_filter_container{
+  position: absolute;
+  top: .25rem;
+  left: .25rem;
 }
 
 .footer{
@@ -174,6 +180,18 @@
 
 .show_btn{
   visibility: visible;
+}
+
+.icon_list_container{
+  position: absolute;
+  top: .25rem;
+  left: .25rem;
+  display: flex;
+  gap: .125rem;
+}
+
+.selected_icon{
+  background-color: grey;
 }
 
 
