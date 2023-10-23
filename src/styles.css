@@ -93,24 +93,22 @@
 
 .appointment_list{
   display: flex;
-}
-
-.appointment_list_wrapper{
-  
-  position: absolute;
-  bottom: 0;
-
   padding: .5rem;
-  padding-top: 1.5rem;
   box-sizing: border-box;
   border: 1px solid #dddddd;
+}
+
+
+.appointment_list_wrapper{
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 
 .add_apt_btn{
   position: absolute;
   left: 0;
   top: 0;
-
 }
 
 .appointment_card{
@@ -169,6 +167,15 @@
 .hide_view{
   display: none;
 }
+
+.hide_btn{
+  visibility: hidden;
+}
+
+.show_btn{
+  visibility: visible;
+}
+
 
 
 
