@@ -4,7 +4,7 @@ import { FaWrench, FaOilCan, FaCarBattery} from 'react-icons/fa';
 import { MdLocalCarWash, MdOutlineCarRepair} from 'react-icons/md';
 import { GiMechanicGarage } from 'react-icons/gi';
 
-export const Icons = Object.freeze({
+const Icons = Object.freeze({
     MdOutlineCarRepair: <MdOutlineCarRepair/>,
     FaWrench: <FaWrench/>,
     FaOilCan: <FaOilCan/>,
@@ -13,19 +13,31 @@ export const Icons = Object.freeze({
     FaCarBattery: <FaCarBattery/>,
 });
 
+export const getIcons = () => Object.keys(Icons)
+
 export function IconList({
     icons = [],
+    disabledIcons = [],
     selectedIcons = [],
     toggleIcon = () =>{},
     iconSize = 16
 }){
 
-    const css = (icon) => selectedIcons.includes(icon) ? "selected_icon" : ""
-    
+    const isIconDisabled = (icon) => disabledIcons.includes(icon)
+    const isIconSelected = (icon) => selectedIcons.includes(icon)
+
+    function getCSS(icon){
+        if(isIconSelected(icon)) return "selected_icon"
+        if(isIconDisabled(icon)) return "disabled_icon"
+        return ""
+    }
+
     return(<div className="icon_list_container">
         {icons.map((k, idx)=>
-            <div key={idx} className={css(k)} onClick={e=>toggleIcon(k)}>
-                {cloneElement(Icons[k], {size: iconSize})}
+            <div key={idx} 
+                 className={getCSS(k)} 
+                 onClick={e=>!isIconDisabled(k) && toggleIcon(k)}>
+                    {cloneElement(Icons[k], {size: iconSize})}
             </div>)}
     </div>);
 }

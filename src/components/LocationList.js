@@ -3,7 +3,7 @@ import {useState, useEffect } from 'react'
 import { useAuth } from '../AuthProvider'
 import useAPI from '../useAPI'
 
-import IconList from './IconList'
+import {IconList, getIcons} from './IconList'
 
 import '../styles.css';
 
@@ -20,18 +20,17 @@ const LocationPanelState = Object.freeze({
 });
 
 
-const locationForm =  {address: "", info: ""}
+const locationForm =  {address: "", info: "", icons: []}
 
 function LocationList({
     locations = [], 
     selectedLocationId = null, 
     selectLocation = ()=>{}, 
-    refetchLocations = ()=>{} }){
+    refetchLocations = ()=>{} 
+}){
   
     const { isStoreOwner } = useAuth();  
 
-    //
-  
     const {loading, deleteLocation, editLocation, postLocation  } = useAPI()
   
     function addLocation(new_location){
@@ -48,7 +47,7 @@ function LocationList({
 
     return(<>
       {locations ? locations.map( (location, idx)=>
-          <LocationPanel //LocationCard 
+          <LocationPanel
             key={idx}
             isLocationSelected = {location.id === selectedLocationId}
             startingMode = {LocationPanelState.Data}
@@ -103,7 +102,8 @@ function LocationPanel({ //a panel encapsulates the different states of a locati
                         cancelForm={()=>setMode(LocationPanelState.Data)}
                         submitForm ={_editStoreOwnerLocation}
                         form={ {...location} }
-                        LocationFormState = {LocationFormState.Edit}/>
+                        LocationFormState = {LocationFormState.Edit}
+                        currentIcons={location.icons}/>
                 </>
             case LocationPanelState.Data:
                 return<>
@@ -112,8 +112,8 @@ function LocationPanel({ //a panel encapsulates the different states of a locati
                     <div>address: {address}</div>
                     {isStoreOwner() && isLocationSelected ? 
                         <div className="location_card_btns"> 
-                             <button onClick={e=>_deleteLocation(id)} className="">Delete Location</button>
-                             <button onClick={e=>{setMode(LocationPanelState.Edit)}} className="">Edit Location</button>
+                             <button onClick={e=>_deleteLocation(id)} className="">Delete</button>
+                             <button onClick={e=>{setMode(LocationPanelState.Edit)}} className="">Edit</button>
                         </div> : <></>}
                 </>;
             default: return <></>
@@ -131,11 +131,30 @@ function LocationForm({
   cancelForm = ()=>{} , 
   submitForm = ()=>{},
   form = locationForm,
+  currentIcons = [],
  // LocationFormState = ""
  }){
 
+    const [selectedIcons, setSelectedIcons] = useState(currentIcons);
+
+    function toggleIcon(icon_key = ""){
+
+        console.log(icon_key)
+        if(!getIcons().includes(icon_key)){
+          return
+        }
+       
+        if(selectedIcons.includes(icon_key)){
+         // setSelectedIcons(...selectedIcons.filter(icon=>icon !== icon_key) )
+          setSelectedIcons( (selectedIcons)=>selectedIcons.filter(icon=>icon !== icon_key) )
+        }else{
+         // setSelectedIcons([...selectedIcons, icon_key])
+          setSelectedIcons( (selectedIcons)=>[...selectedIcons, icon_key] )
+        }
+      }
+
     const [ formFields, setFormFeilds ] = useState({...form})
-    const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() 
+    const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() && selectedIcons.length > 0
 
     function handleChange(e){
     setFormFeilds({
@@ -145,11 +164,19 @@ function LocationForm({
 
     function handleSubmit(e){
         e.preventDefault();
-        console.log(formFields);
-        submitForm ({...formFields, icons: []}); //ignore the icons for now
-        cancelForm()}   
+        console.log(formFields, selectedIcons);
+        submitForm ({...formFields, icons: [...selectedIcons]});
+        cancelForm();
+    }   
 
     return(<>
+
+        <IconList 
+          iconSize={20}
+          icons={getIcons()}
+          selectedIcons={selectedIcons }
+          toggleIcon={toggleIcon}/>
+
         <form onSubmit={handleSubmit}>
             <button onClick={cancelForm} className="cancel_new_appointment_btn">X</button>
             <div className="form_row">

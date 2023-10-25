@@ -194,6 +194,10 @@
   background-color: grey;
 }
 
+.disabled_icon{
+  opacity: 0.175;
+}
+
 
 
 
