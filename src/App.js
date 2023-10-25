@@ -180,8 +180,6 @@ function UserView(){
     return filtered_locations;
   }
 
-  //const {selectableIcons, disabledIcons } = getDisabledIconsForLocations(data)
-
   return (<>     
         <Header refetchLocations={getPosts}/>
         <Body
@@ -226,19 +224,19 @@ function Body({
 
   const { isUser, isStoreOwner } = useAuth();
 
-  function getSelectedLocationAppointments(location_id){
+  function getSelectedLocationAppointmentsIcons(locations = [], location_id = null){
 
     console.log("selected: ", location_id)
 
     const selected_location = locations.find(({id})=>id === location_id)
 
-    if(!location_id){ //if no location is selected
-      return [];
+    if(!selected_location){ //if no location was found, return empty list
+      return {};
     }
-    return selected_location?.appointments
+    return { appointments: selected_location.appointments, icons: selected_location.icons}
   }
 
-
+  const { appointments, icons } =  getSelectedLocationAppointmentsIcons(locations, selectedLocation)
 
   return(
   <div className="body">
@@ -248,13 +246,13 @@ function Body({
     </div>
 
     <div className="body_locations">
-      <div className="icon_filter_container">
-        <IconList 
-          iconSize={20}
-          disabledIcons={disabledIcons}
-          icons={getIcons()}
-          selectedIcons={selectedIcons }
-          toggleIcon={toggleIcon}/>
+      <div className="icon_list_container">
+          <IconList 
+            iconSize={24}
+            disabledIcons={disabledIcons}
+            icons={getIcons()}
+            selectedIcons={selectedIcons }
+            toggleIcon={toggleIcon}/>
       </div>
       <LocationList 
         locations={locations}  
@@ -264,9 +262,8 @@ function Body({
 
       {isUser() || isStoreOwner() ? //only show the appointments to user, storeowner user types
         <AppointmentList 
-          appointments={getSelectedLocationAppointments(selectedLocation)} 
-          selectedLocationId={selectedLocation}
-          refetchLocations={refetchLocations}/> : 
+          {...{appointments, icons, refetchLocations}}
+          selectedLocationId={selectedLocation}/> : 
         <></>}
     </div>
 

@@ -1,6 +1,9 @@
 import {useState, useEffect } from 'react'
 
 import { useAuth, useConfig } from '../AuthProvider'
+
+import {IconList, getIcons} from './IconList'
+
 import useAPI from '../useAPI'
 
 import '../styles.css';
@@ -18,7 +21,12 @@ const appointmentForm = {
     AddButton: "AddButton",
 });
 
-function AppointmentList({appointments = [], selectedLocationId = null, refetchLocations}){
+function AppointmentList({
+  appointments = [],
+  icons = [], 
+  selectedLocationId = null, 
+  refetchLocations = ()=>{}
+}){
 
     const { isUser } = useAuth();  
   
@@ -67,6 +75,7 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
                 <AppointmentPanel 
                     key={idx} 
                     {...appointment} 
+                    icons={icons}
                     startingMode = {AppointmentPanelState.Data}
                     isAppointmentSelected = {appointment.id === selectedAppointmentId}
                     deleteUserAppointment={_deleteUserAppointment} 
@@ -78,6 +87,7 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
             {isUser() ? // users can see a button for appointment creations
                 <>
                     <AppointmentPanel
+                        icons={icons}
                         startingMode = {AppointmentPanelState.AddButton}
                         _createUserAppointment={_createUserAppointment}
                         selectedAppointmentId={selectedAppointmentId}/>
@@ -88,10 +98,12 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
   }
 
   function AppointmentPanel({
+    appointment_types = [],
     id, date,end,start, status, 
-    selectedLocationId, 
-    selectedAppointmentId,
-    _createUserAppointment,
+    icons = [], 
+    selectedLocationId = null, 
+    selectedAppointmentId = null,
+    _createUserAppointment = () =>{},
     deleteUserAppointment = () =>{}, 
     updateAppointmentStatus = () =>{},
     selectAppointment = () => {},
@@ -111,20 +123,27 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
             case AppointmentPanelState.New:
                 return <>
                     <AppointmentForm
-                    cancelForm={()=>setMode(AppointmentPanelState.AddButton)}
-                    submitForm ={_createUserAppointment}
-                    form={ {...appointmentForm}  }/>
+                      cancelForm={()=>setMode(AppointmentPanelState.AddButton)}
+                      submitForm ={_createUserAppointment}
+                      form={ {...appointmentForm}  }
+                      validAppointmentTypes={icons}/>
                 </>
             case AppointmentPanelState.EditStatus:
                return <>
                    <AppointmentForm
-                        cancelForm={()=>setMode(AppointmentPanelState.Data)}
-                        submitForm ={updateAppointmentStatus}
-                        form={ {id, date, end_time: end, start_time: start, status} }
-                   />
+                      cancelForm={()=>setMode(AppointmentPanelState.Data)}
+                      submitForm ={updateAppointmentStatus}
+                      form={ {id, date, end_time: end, start_time: start, status} }
+                      validAppointmentTypes={icons}/>
                 </>
             case AppointmentPanelState.Data:
                 return<>
+                    <div className="form_row">
+                        <div>  type:  </div>
+                        <div className="appointment_card_icons">
+                          <IconList icons={appointment_types} iconSize={15}/>
+                        </div>
+                    </div>
                      <div className="form_row">
                         <div>  date:  </div>
                         <div>  {date}  </div>
@@ -155,6 +174,7 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
     cancelForm = ()=>{} , 
     submitForm = ()=>{},
     form = appointmentForm,
+    validAppointmentTypes = [getIcons()]
  // LocationFormState = ""
 }){
 
@@ -162,10 +182,28 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
   
     const { isStoreOwner, isUser } = useAuth();
     const { config } = useConfig();  
+
+    const [selectedIcons, setSelectedIcons] = useState([]);
+
+    function toggleIcon(icon_key = ""){
+
+        console.log(icon_key)
+        if(!getIcons().includes(icon_key)){
+          return
+        }
+       
+        if(selectedIcons.includes(icon_key)){
+         // setSelectedIcons(...selectedIcons.filter(icon=>icon !== icon_key) )
+          setSelectedIcons( (selectedIcons)=>selectedIcons.filter(icon=>icon !== icon_key) )
+        }else{
+         // setSelectedIcons([...selectedIcons, icon_key])
+          setSelectedIcons( (selectedIcons)=>[...selectedIcons, icon_key] )
+        }
+      }
   
     const [ formFields, setFormFeilds ] = useState(form)
 
-    const areFieldsValid = () => formFields.date.trim() && formFields.start_time.trim() && formFields.end_time.trim()
+    const areFieldsValid = () => formFields.date.trim() && formFields.start_time.trim() && formFields.end_time.trim() && selectedIcons.length > 0
   
     function handleChange(e){
       setFormFeilds({
@@ -177,11 +215,26 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
     function handleSubmit(e){
       e.preventDefault();
       console.log(formFields);
-      submitForm({...formFields});
+      submitForm({...formFields, apt_types: [...selectedIcons]});
       cancelForm()
     }
-  
+
     return(<>
+
+        <div className={`form_row ${isUser() && `top_margin_add_user_apt`}`}> type:
+          <div className="appointment_card_icons">
+              {isUser() ? <>
+                <IconList 
+                iconSize={16}
+                icons={validAppointmentTypes}
+                selectedIcons={selectedIcons}
+                toggleIcon={toggleIcon}/>          
+              </> : <>
+                <IconList icons={validAppointmentTypes}/>       
+              </>}           
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit}>
           <button onClick={e=>cancelForm()} className="cancel_new_appointment_btn">X</button>
           <div className="form_row">
@@ -207,7 +260,7 @@ function AppointmentList({appointments = [], selectedLocationId = null, refetchL
             </div> : <></>}
 
 
-          <input type="submit" value="Confirm" disabled={!areFieldsValid()}/>
+          <input type="submit" value="Confirm" disabled={isUser() && !areFieldsValid()}/>
         </form>
     </>);
 }

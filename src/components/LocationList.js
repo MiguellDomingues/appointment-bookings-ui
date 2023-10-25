@@ -106,8 +106,10 @@ function LocationPanel({ //a panel encapsulates the different states of a locati
                         currentIcons={location.icons}/>
                 </>
             case LocationPanelState.Data:
-                return<>
-                    <IconList icons={location.icons}/>
+                return<> 
+                    <div className="icon_list_container">
+                        <IconList icons={location.icons}/>
+                    </div>
                     <div>info: {info}</div>
                     <div>address: {address}</div>
                     {isStoreOwner() && isLocationSelected ? 
@@ -170,12 +172,13 @@ function LocationForm({
     }   
 
     return(<>
-
-        <IconList 
-          iconSize={20}
-          icons={getIcons()}
-          selectedIcons={selectedIcons }
-          toggleIcon={toggleIcon}/>
+        <div className="icon_list_container">
+            <IconList 
+            iconSize={20}
+            icons={getIcons()}
+            selectedIcons={selectedIcons }
+            toggleIcon={toggleIcon}/>
+        </div>
 
         <form onSubmit={handleSubmit}>
             <button onClick={cancelForm} className="cancel_new_appointment_btn">X</button>

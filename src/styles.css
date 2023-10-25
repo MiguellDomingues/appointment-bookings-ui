@@ -47,12 +47,6 @@
   flex-direction: column;
 }
 
-.icon_filter_container{
-  position: absolute;
-  top: .25rem;
-  left: .25rem;
-}
-
 .footer{
   height: 5%;
   width: 100%;
@@ -196,6 +190,14 @@
 
 .disabled_icon{
   opacity: 0.175;
+}
+
+.appointment_card_icons{
+  display: flex;
+}
+
+.top_margin_add_user_apt{
+  margin-top: 1rem;
 }
 
 

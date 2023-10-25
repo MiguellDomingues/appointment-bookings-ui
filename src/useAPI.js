@@ -92,17 +92,18 @@ function useAPI(){
     }})
 
     const postAppointment = async (appointment) => 
-    fetchWrapper(`${appointments_path}?key=${token?.key}`,  {
-        method: 'POST',
-        body: JSON.stringify({
-            loc_id:     appointment.loc_id,
-            user_id:    token?.key,
-            date:       appointment.date,
-            start_time: appointment.start_time,
-            end_time:   appointment.end_time
-          }),
-        headers: {
-          'Content-Type': 'application/json'
+      fetchWrapper(`${appointments_path}?key=${token?.key}`,  {
+          method: 'POST',
+          body: JSON.stringify({
+              loc_id:     appointment.loc_id,
+              user_id:    token?.key,
+              date:       appointment.date,
+              start_time: appointment.start_time,
+              end_time:   appointment.end_time,
+              apt_types:  appointment.apt_types
+            }),
+          headers: {
+            'Content-Type': 'application/json'
     }})
 
     const deleteAppointment = async (appointment_id) => 
