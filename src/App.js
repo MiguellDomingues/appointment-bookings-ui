@@ -1,5 +1,7 @@
 import {useState, useEffect, useMemo } from 'react'
 
+import CircleLoader from "react-spinners/ClipLoader";
+
 import { useAuth, AuthProvider,useConfig, } from './AuthProvider'
 
 import LocationList from './components/LocationList'
@@ -76,19 +78,13 @@ function App() {
   }
  }
 
-
+const isPageSelected = (index) => index === selectedPage 
+console.log("selected page ", selectedPage)
   return (<>
-
-        <div className="user_picker">
-          <div>select a user</div> 
-          {users.map( (account,idx)=>
-            <button 
-              key={idx} 
-              onClick={ !account.error ? e=>{setSelectedPage(idx)} : e=>{} }
-              disabled={account.error}>
-              {account.loading ? "loading..." : account.error ? "error": account.type}
-            </button>)} 
-        </div>
+        <UserViewTabList 
+          userViews={users}
+          isTabSelected={isPageSelected}
+          setSelectedTab={(idx)=>setSelectedPage(idx)}/>
 
         {users.map( (account,idx)=>
             <AuthProvider      
@@ -97,13 +93,63 @@ function App() {
               onLogInSuccess={handleUserLoginSuccess(idx)}
               onLogInError={handleUserLoginError(idx)}
               onLogInFinally={handleUserLoginFinally(idx)}>
-                <div className={idx === selectedPage ? "show_view page_wrapper" : "hide_view page_wrapper"}><UserView/></div>
+                <div className={isPageSelected(idx) ? "show_view page_wrapper" : "hide_view page_wrapper"}>
+                  <UserView/>
+                </div>
             </AuthProvider>
           )}
       </>);
 }
 
 export default App;
+
+function UserViewTabList({
+  userViews = [],
+  isTabSelected = ()=>{},
+  setSelectedTab = ()=>{}
+}){
+
+  function getType(type){
+    if(type === "USER"){
+      return "User"
+    }else if(type === "GUEST"){
+      return "Guest"
+    }else{
+      return "Store Owner"
+    }
+  }
+
+  const override = {
+    display: "block",
+    opacity: .5,
+    margin: "0 auto",
+    borderColor: "black",
+  };
+
+  return(<>
+   <div 
+      className="user_picker" //adjust the container back to the top-right of the viewport
+      style={{right: `${ -1*(accounts.length-1)*65 }px`}}> 
+        {userViews.map( (account,idx)=>
+          <div
+            key={idx} 
+            className={`user_tab ${isTabSelected(idx) && `selected_user_tab`}`}
+            style={{right: `${idx*65}px`}} //offset each tab so they overlap with each other
+            onClick={ !account.error ? e=>{ setSelectedTab(idx)} : e=>{} }
+            disabled={account.error}>
+              <div>{account.loading ? <>
+                <CircleLoader
+                  color={"#ffffff"}
+                  loading={true}
+                  cssOverride={override}
+                  size={15}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"/>               
+              </> : account.error ? "error": getType(account.type)}</div>
+          </div>)} 
+    </div>
+  </>);
+}
 
 function UserView(){
 
@@ -122,7 +168,7 @@ function UserView(){
 
   useEffect( () => getPosts(), [token, config]);
 
-  function getPosts(){
+  function getPosts(){ console.log("refetch")
     fetchLocations().then((results)=>{setData(results.posts)})
   }
 
@@ -181,18 +227,16 @@ function UserView(){
   }
 
   return (<>     
-        <Header refetchLocations={getPosts}/>
+
         <Body
           locations={filterLocationsBySelectedIcons(data,selectedIcons)}
-
           disabledIcons={getDisabledIconsForLocations(data)}
           toggleIcon={toggleIcon}
           selectedIcons={selectedIcons}
-
           selectedLocation={selectedLocation}
           selectLocation={(id)=>{setSelectedLocation(id)}}
           refetchLocations={getPosts}/>
-        <Footer/>   
+
   </>);
   
 }
@@ -205,10 +249,6 @@ function Header({refetchLocations}){
     {token && token?.username ? <>Welcome{token.username}</> : <></> }
     <button onClick={e=>refetchLocations()}>Refresh</button>
   </div>);
-}
-
-function Footer(){
-  return( <div className="footer"> </div>  );
 }
 
 function Body({
@@ -241,30 +281,42 @@ function Body({
   return(
   <div className="body">
 
-    <div className="body_map">
-      {/*<MyMap posts={locations} selected={selected} handleSelectedLocation={selectLocation} />*/}
+    <div className="body_left">
+      {<MyMap 
+        posts={locations} 
+        selected={selectedLocation} 
+        handleSelectedLocation={selectLocation} />}
     </div>
 
-    <div className="body_locations">
-      <div className="icon_list_container">
-          <IconList 
-            iconSize={24}
-            disabledIcons={disabledIcons}
-            icons={getIcons()}
-            selectedIcons={selectedIcons }
-            toggleIcon={toggleIcon}/>
-      </div>
-      <LocationList 
-        locations={locations}  
-        selectedLocationId={selectedLocation}  
-        selectLocation={selectLocation}
-        refetchLocations={refetchLocations}/>
+    <div className="body_right">
 
-      {isUser() || isStoreOwner() ? //only show the appointments to user, storeowner user types
-        <AppointmentList 
-          {...{appointments, icons, refetchLocations}}
-          selectedLocationId={selectedLocation}/> : 
-        <></>}
+      <Header refetchLocations={refetchLocations}/>
+
+      <div className="body_locations">
+
+        <div className="icon_list_container">
+            <IconList 
+              iconSize={24}
+              disabledIcons={disabledIcons}
+              icons={getIcons()}
+              selectedIcons={selectedIcons }
+              toggleIcon={toggleIcon}/>
+        </div>
+        
+        <LocationList 
+          locations={locations}  
+          selectedLocationId={selectedLocation}  
+          selectLocation={selectLocation}
+          refetchLocations={refetchLocations}/>
+
+        {isUser() || isStoreOwner() ? //only show the appointments to user, storeowner user types
+          <AppointmentList 
+            {...{appointments, icons, refetchLocations}}
+            selectedLocationId={selectedLocation}/> : 
+
+          <></>}
+      </div>
+
     </div>
 
   </div>);
