@@ -3,9 +3,6 @@
 }
 
 .page_wrapper{
-  
-  flex-direction: column;
-  align-items: center;
   height: 100dvh;
   width: 100dvw;
 }
@@ -13,21 +10,18 @@
 .header{
   height: 7.5%;
   width: 100%;
-  
   padding: .5rem;
   box-sizing: border-box;
   border: 1px solid #dddddd;
 }
 
-.body{
+.page{
   height: 100%;
   width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #dddddd;
   display: flex;
 }
 
-.body_right{
+.page_section_right{
   position: relative;
   height: 100%;
   width: 33.3333%;
@@ -37,7 +31,7 @@
   flex-direction: column;
 }
 
-.body_left{
+.page_section_left{
   height: 100%;
   width: 66.6666%;
   box-sizing: border-box;

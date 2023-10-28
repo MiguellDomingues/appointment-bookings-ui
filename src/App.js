@@ -154,7 +154,8 @@ function UserViewTabList({
 function UserView(){
 
   const { config } = useConfig()
-  const { token } = useAuth();
+  const { token, isUser, isStoreOwner } = useAuth();
+  
 
   const { fetchLocations, loading } = useAPI()
 
@@ -166,9 +167,9 @@ function UserView(){
 
   //const locationsIcons = useMemo(() => getLocationIcons(data), [data]);
 
-  useEffect( () => getPosts(), [token, config]);
+  useEffect( () => getData(), [token, config]);
 
-  function getPosts(){ console.log("refetch")
+  function getData(){ 
     fetchLocations().then((results)=>{setData(results.posts)})
   }
 
@@ -226,17 +227,64 @@ function UserView(){
     return filtered_locations;
   }
 
+  function getSelectedLocationAppointmentsIcons(locations = [], location_id = null){
+
+    console.log("selected: ", location_id)
+
+    const selected_location = locations.find(({id})=>id === location_id)
+
+    if(!selected_location){ //if no location was found, return empty list
+      return {};
+    }
+    return { appointments: selected_location.appointments, icons: selected_location.icons}
+  }
+
+  const locations = filterLocationsBySelectedIcons(data,selectedIcons);
+  const disabledIcons= getDisabledIconsForLocations(data)
+  const { appointments, icons } =  getSelectedLocationAppointmentsIcons(locations, selectedLocation)
+
   return (<>     
 
-        <Body
-          locations={filterLocationsBySelectedIcons(data,selectedIcons)}
-          disabledIcons={getDisabledIconsForLocations(data)}
-          toggleIcon={toggleIcon}
-          selectedIcons={selectedIcons}
-          selectedLocation={selectedLocation}
-          selectLocation={(id)=>{setSelectedLocation(id)}}
-          refetchLocations={getPosts}/>
+    <div className="page">
 
+      <div className="page_section_left">
+        {<MyMap 
+          posts={locations} 
+          selected={selectedLocation} 
+          handleSelectedLocation={(id)=>setSelectedLocation(id)} />}
+      </div>
+
+      <div className="page_section_right">
+
+        <Header refetchLocations={getData}/>
+
+        <div className="body_locations">
+
+          <div className="icon_list_container">
+              <IconList 
+                iconSize={24}
+                disabledIcons={disabledIcons}
+                icons={getIcons()}
+                selectedIcons={selectedIcons }
+                toggleIcon={toggleIcon}/>
+          </div>
+          
+          <LocationList 
+            locations={locations}  
+            selectedLocationId={selectedLocation}  
+            selectLocation={ (id)=>setSelectedLocation(id) }
+            refetchLocations={getData}/>
+
+          {isUser() || isStoreOwner() ? //only show the appointments to user, storeowner user types
+            <AppointmentList 
+              {...{appointments, icons, }}
+              refetchLocations={getData}
+              selectedLocationId={selectedLocation}/> : 
+
+            <></>}
+        </div>
+      </div>
+    </div>
   </>);
   
 }
@@ -251,6 +299,7 @@ function Header({refetchLocations}){
   </div>);
 }
 
+/*
 function Body({
   locations = [], 
   selectedLocation = null, 
@@ -321,3 +370,4 @@ function Body({
 
   </div>);
 }
+*/
