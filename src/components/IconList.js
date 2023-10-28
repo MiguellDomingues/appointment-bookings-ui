@@ -35,8 +35,8 @@ export function IconList({
     return(<>
         {icons.map((k, idx)=>
             <div key={idx} 
-                    className={getCSS(k)} 
-                    onClick={e=>!isIconDisabled(k) && toggleIcon(k)}>
+                 className={getCSS(k)} 
+                 onClick={e=>!isIconDisabled(k) && toggleIcon(k)}>
                     {cloneElement(Icons[k], {size: iconSize})}
             </div>)}
     </>);

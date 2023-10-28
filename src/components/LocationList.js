@@ -13,7 +13,7 @@ const LocationFormState = Object.freeze({
 });
 
 const LocationPanelState = Object.freeze({
-    Data: "Data",
+    Card: "Card",
     Edit: "Edit",
     New: "New",
     AddButton: "AddButton"
@@ -33,7 +33,7 @@ function LocationList({
 
     const {loading, deleteLocation, editLocation, postLocation  } = useAPI()
   
-    function addLocation(new_location){
+    function _postLocation(new_location){
       postLocation({new_location},(result)=>{refetchLocations()})
     }
   
@@ -41,7 +41,7 @@ function LocationList({
         deleteLocation({location_id},(result)=>{refetchLocations()})  
     }
   
-    function _editStoreOwnerLocation(location){
+    function _editLocation(location){
         editLocation({location},(result)=>{refetchLocations()})
     }
 
@@ -50,38 +50,34 @@ function LocationList({
           <LocationPanel
             key={idx}
             isLocationSelected = {location.id === selectedLocationId}
-            startingMode = {LocationPanelState.Data}
-            {...{location,selectLocation,_deleteLocation, _editStoreOwnerLocation}}/>) 
+            startingMode = {LocationPanelState.Card}
+            {...{location,selectLocation,_deleteLocation, _editLocation}}/>) 
         : <></>}
 
         {isStoreOwner() ? <>
             <LocationPanel   
-                {...{_deleteLocation,_editStoreOwnerLocation}}
-                putStoreOwnerLocation={addLocation}
-                selectedLocationId={selectedLocationId}
-                startingMode = {LocationPanelState.AddButton}/>
+                startingMode = {LocationPanelState.AddButton}
+                {...{_postLocation}}/>
         </> : <></> }
     </>)
 }
 
-function LocationPanel({ //a panel encapsulates the different states of a location card
+function LocationPanel({ //a panel encapsulates the different UI states for a location
     location = {},
     isLocationSelected = false,
     selectLocation=()=>{}, 
-    putStoreOwnerLocation = ()=>{},
+    _postLocation = ()=>{},
     _deleteLocation=()=>{}, 
-    _editStoreOwnerLocation=()=>{},
-    startingMode = LocationPanelState.Data,
-    selectedLocationId
+    _editLocation=()=>{},
+    startingMode = LocationPanelState.Card,
+    selectedLocationId = ""
 }){
-
-    const { isStoreOwner } = useAuth();  
 
     const [ mode, setMode ] = useState( startingMode )
 
     useEffect(()=>setMode(startingMode), [isLocationSelected, selectedLocationId])
 
-    const {info, address, id, LatLng, } = location
+    const { id } = location
 
     function getUI(selectedMode){
         
@@ -92,41 +88,60 @@ function LocationPanel({ //a panel encapsulates the different states of a locati
                 return <>
                     <LocationForm
                         cancelForm={()=>setMode(LocationPanelState.AddButton)}
-                        submitForm ={putStoreOwnerLocation}
+                        submitForm ={_postLocation}
                         form={ locationForm  }
                         LocationFormState = {LocationFormState.New}/>
                 </>
             case LocationPanelState.Edit:
                return <>
                     <LocationForm
-                        cancelForm={()=>setMode(LocationPanelState.Data)}
-                        submitForm ={_editStoreOwnerLocation}
+                        cancelForm={()=>setMode(LocationPanelState.Card)}
+                        submitForm ={_editLocation}
                         form={ {...location} }
                         LocationFormState = {LocationFormState.Edit}
                         currentIcons={location.icons}/>
                 </>
-            case LocationPanelState.Data:
+            case LocationPanelState.Card:
                 return<> 
-                    <div className="icon_list_container">
-                        <IconList icons={location.icons}/>
-                    </div>
-                    <div>info: {info}</div>
-                    <div>address: {address}</div>
-                    {isStoreOwner() && isLocationSelected ? 
-                        <div className="location_card_btns"> 
-                             <button onClick={e=>_deleteLocation(id)} className="">Delete</button>
-                             <button onClick={e=>{setMode(LocationPanelState.Edit)}} className="">Edit</button>
-                        </div> : <></>}
+                     <LocationCard 
+                        {...{location, isLocationSelected}}
+                        handleDeleteLocation={id=>_deleteLocation(id)}
+                        handleSetEdit={_=>setMode(LocationPanelState.Edit)}/>
                 </>;
             default: return <></>
         }
     }
 
     return(
-        <div className={isLocationSelected ? "location_card location_card_selected" : "location_card" } onClick={ e=>{ selectLocation(id)}}>
-            {getUI(mode)}
+        <div className={`location_card ${isLocationSelected && `location_card_selected`}`} 
+             onClick={ e=>{ selectLocation(id)}}>
+                {getUI(mode)}
         </div>
     );
+}
+
+function LocationCard({
+    location = {},
+    isLocationSelected,
+    handleDeleteLocation =()=>{},
+    handleSetEdit = () =>{}
+
+}){
+    const { isStoreOwner } = useAuth();  
+    const {info, address, id, LatLng, icons} = location
+
+    return(<>
+        <div className="icon_list_container">
+            <IconList icons={icons}/>
+        </div>
+        <div>info: {info}</div>
+        <div>address: {address}</div>
+        {isStoreOwner() && isLocationSelected ? 
+            <div className="location_card_btns"> 
+                    <button onClick={e=>handleDeleteLocation(id)} className="">Delete</button>
+                    <button onClick={e=>handleSetEdit()} className="">Edit</button>
+            </div> : <></>}
+    </>);
 }
 
 function LocationForm({
@@ -174,19 +189,19 @@ function LocationForm({
     return(<>
         <div className="icon_list_container">
             <IconList 
-            iconSize={20}
-            icons={getIcons()}
-            selectedIcons={selectedIcons }
-            toggleIcon={toggleIcon}/>
+                iconSize={20}
+                icons={getIcons()}
+                selectedIcons={selectedIcons }
+                toggleIcon={toggleIcon}/>
         </div>
 
         <form onSubmit={handleSubmit}>
             <button onClick={cancelForm} className="cancel_new_appointment_btn">X</button>
             <div className="form_row">
-            address: <input name="address" value={formFields.address.trim()} className="appointment_form_input" onChange={handleChange} required /> 
+                address: <input name="address" value={formFields.address.trim()} className="appointment_form_input" onChange={handleChange} required /> 
             </div>
             <div className="form_row">
-            info:  <input name="info" value={formFields.info.trim()} className="appointment_form_input" onChange={handleChange} required />  
+                info:  <input name="info" value={formFields.info.trim()} className="appointment_form_input" onChange={handleChange} required />  
             </div>
             <input type="submit" value="Confirm" disabled={!areFieldsValid()}/>
         </form> 

@@ -15,7 +15,7 @@ const appointmentForm = {
   }
 
   const AppointmentPanelState = Object.freeze({
-    Data: "Data",
+    Card: "Card",
     EditStatus: "EditStatus",
     New: "New",
     AddButton: "AddButton",
@@ -28,8 +28,7 @@ function AppointmentList({
   refetchLocations = ()=>{}
 }){
 
-    const { isUser } = useAuth();  
-  
+    const { isUser } = useAuth();   
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   
     useEffect(()=>{
@@ -40,7 +39,7 @@ function AppointmentList({
     const { loading, postAppointment, deleteAppointment, editAppointmentStatus } = useAPI()
   
   
-    function _createUserAppointment(formFields){
+    function _postAppointment(formFields){
   
       const new_appointment = {
         loc_id: selectedLocationId ,
@@ -51,7 +50,7 @@ function AppointmentList({
         refetchLocations();})
     }
   
-    function _updateAppointmentStatus(new_appointment){
+    function _editAppointmentStatus(new_appointment){
 
         const apt_id = new_appointment.id;
         const new_status = new_appointment.status;
@@ -63,7 +62,7 @@ function AppointmentList({
   
     }
   
-    function _deleteUserAppointment(appointment_id){
+    function _deleteAppointment(appointment_id){
         deleteAppointment({appointment_id},(result)=>{refetchLocations()})
     }
   
@@ -74,49 +73,42 @@ function AppointmentList({
             {appointments.map((appointment, idx)=>  
                 <AppointmentPanel 
                     key={idx} 
-                    {...appointment} 
-                    icons={icons}
-                    startingMode = {AppointmentPanelState.Data}
+                    {...{appointment,icons,selectedAppointmentId,selectedLocationId, _deleteAppointment, _editAppointmentStatus}} 
+                    startingMode = {AppointmentPanelState.Card}
                     isAppointmentSelected = {appointment.id === selectedAppointmentId}
-                    deleteUserAppointment={_deleteUserAppointment} 
-                    updateAppointmentStatus={_updateAppointmentStatus}
-                    selectedLocationId={selectedLocationId}
-                    selectedAppointmentId={selectedAppointmentId}
                     selectAppointment={ (id)=> setSelectedAppointmentId(id) }/>)}
-                
+
             {isUser() ? // users can see a button for appointment creations
                 <>
-                    <AppointmentPanel
-                        icons={icons}
-                        startingMode = {AppointmentPanelState.AddButton}
-                        _createUserAppointment={_createUserAppointment}
-                        selectedAppointmentId={selectedAppointmentId}/>
+                  <AppointmentPanel
+                    {...{icons, _postAppointment, selectedAppointmentId}}
+                    startingMode = {AppointmentPanelState.AddButton}/>
                 </>  : <></>}
             </div>
         </div>
     </>);
   }
 
-  function AppointmentPanel({
-    appointment_types = [],
-    id, date,end,start, status, 
+  function AppointmentPanel({ 
+    appointment = {},
     icons = [], 
     selectedLocationId = null, 
     selectedAppointmentId = null,
-    _createUserAppointment = () =>{},
-    deleteUserAppointment = () =>{}, 
-    updateAppointmentStatus = () =>{},
+    startingMode = AppointmentPanelState.Card,
+    isAppointmentSelected = false,
+    _postAppointment = () =>{},
+    _deleteAppointment = () =>{}, 
+    _editAppointmentStatus = () =>{},
     selectAppointment = () => {},
-    startingMode = AppointmentPanelState.Data,
-    isAppointmentSelected = false
   }){
-    const { isUser, isStoreOwner } = useAuth();  
+
     const [ mode, setMode ] = useState( startingMode )
 
     useEffect(()=>setMode(startingMode), [selectedAppointmentId, selectedLocationId])
 
-    function getUI(selectedMode){
-        
+    const {id, date,end,start, status, appointment_types} = appointment
+
+    function getUI(selectedMode){        
         switch(selectedMode){
             case AppointmentPanelState.AddButton:
                 return <button onClick={e=>setMode(AppointmentPanelState.New)} className="">Create Appointment</button>
@@ -124,39 +116,24 @@ function AppointmentList({
                 return <>
                     <AppointmentForm
                       cancelForm={()=>setMode(AppointmentPanelState.AddButton)}
-                      submitForm ={_createUserAppointment}
+                      submitForm ={_postAppointment}
                       form={ {...appointmentForm}  }
                       validAppointmentTypes={icons}/>
                 </>
             case AppointmentPanelState.EditStatus:
                return <>
                    <AppointmentForm
-                      cancelForm={()=>setMode(AppointmentPanelState.Data)}
-                      submitForm ={updateAppointmentStatus}
+                      cancelForm={()=>setMode(AppointmentPanelState.Card)}
+                      submitForm ={_editAppointmentStatus}
                       form={ {id, date, end_time: end, start_time: start, status} }
                       validAppointmentTypes={icons}/>
                 </>
-            case AppointmentPanelState.Data:
+            case AppointmentPanelState.Card:
                 return<>
-                    <div className="form_row">
-                        <div>  type:  </div>
-                        <div className="appointment_card_icons">
-                          <IconList icons={appointment_types} iconSize={15}/>
-                        </div>
-                    </div>
-                     <div className="form_row">
-                        <div>  date:  </div>
-                        <div>  {date}  </div>
-                    </div>
-                    <div className="form_row"> end: {end} </div>
-                    <div className="form_row">start: {start} </div>
-                    <div className="form_row"> status: {status}</div>
-                    {isUser() ? <>
-                        <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>deleteUserAppointment(id)}>Cancel</button>
-                    </>: <></>}
-                    {isStoreOwner() ? <>
-                        <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>setMode(AppointmentPanelState.EditStatus)}>Update Status</button>
-                    </>: <></>}
+                    <AppointmentCard 
+                      {...{appointment, isAppointmentSelected}}
+                      handleDeleteAppointment={_deleteAppointment}
+                      handleSetEdit={()=>setMode(AppointmentPanelState.EditStatus)}/>              
                 </>;
             default: return <></>
         }
@@ -168,9 +145,41 @@ function AppointmentList({
                 {getUI(mode)}
         </div>
     </>);
-  }
+}
 
-  function AppointmentForm({
+ function AppointmentCard({
+  appointment = {},
+  isAppointmentSelected = false,
+  handleDeleteAppointment = ()=>{},
+  handleSetEdit = ()=>{}
+ }){
+
+  const { isUser, isStoreOwner } = useAuth();  
+
+  const {id, date,end,start, status, appointment_types} = appointment
+
+  return(<>
+    <div className="form_row">
+      <div>  type:  </div>
+      <div className="appointment_card_icons">
+        <IconList icons={appointment_types} iconSize={15}/>
+      </div>
+    </div>
+    <div className="form_row"> date: {date} </div>
+    <div className="form_row"> end: {end} </div>
+    <div className="form_row">start: {start} </div>
+    <div className="form_row"> status: {status}</div>
+
+    {isUser() ? <>
+        <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>handleDeleteAppointment(id)}>Cancel</button>
+    </>: <></>}
+    {isStoreOwner() ? <>
+        <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>handleSetEdit()}>Update Status</button>
+    </>: <></>}
+  </>);
+}
+
+function AppointmentForm({
     cancelForm = ()=>{} , 
     submitForm = ()=>{},
     form = appointmentForm,
@@ -178,7 +187,7 @@ function AppointmentList({
  // LocationFormState = ""
 }){
 
-    console.log("form: ", form)
+    //console.log("form: ", form)
   
     const { isStoreOwner, isUser } = useAuth();
     const { config } = useConfig();  
@@ -266,4 +275,3 @@ function AppointmentList({
 }
 
 export default AppointmentList
-
