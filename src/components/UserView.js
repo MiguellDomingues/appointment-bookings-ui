@@ -11,21 +11,20 @@ import { IconList, getIcons } from './IconList'
 import useAPI from '../useAPI'
 import '../styles.css';
 
-const override = {
-    display: "block",
-    opacity: .5,
-    margin: "0 auto",
-    borderColor: "black",
-  };
+function randomIntFromInterval(min, max) { // min and max included 
+    return Math.floor(Math.random() * (max - min + 1) + min)
+  }
 
 function UserView(){
 
     const { config, loadingConfigs, loadingUser } = useConfig();
     const { token, isUser, isStoreOwner } = useAuth();
     
-    const { fetchLocations, loading } = useAPI();
+    const { fetchLocations } = useAPI();
   
     const [data, setData] = useState([]);
+
+    const [loading, setLoading] = useState(false);
   
      /* track the id of the selected entity to update map/list*/
     const [selectedLocationId, setSelectedLocation] = useState(null);
@@ -36,7 +35,14 @@ function UserView(){
     useEffect( () => getData(), [token, config]);
   
     function getData(){ 
-      fetchLocations().then((results)=>{setData(results.posts)});
+        setLoading(true)
+
+        setTimeout(async ()=>{
+            fetchLocations()
+                .then((results)=>{setData(results.posts)})
+                .catch((err)=>console.log("error getting data", err))
+                .finally(()=>{setLoading(false)});
+        }, randomIntFromInterval(1000, 3000))  
     }
   
     //create a list of disabled icons for the locations that were fetched
@@ -106,18 +112,25 @@ function UserView(){
     const locations = filterLocationsBySelectedIcons(data,selectedIcons);
     const disabledIcons = getDisabledIconsForLocations(data);
     const { appointments, icons } =  getSelectedLocationAppointmentsIcons(locations, selectedLocationId);
-    console.log("///////////////////////////////LOADING CONFIGS////////////////////////////", loadingConfigs)
+
     return (<>     
 
-      {loadingConfigs ? <div className="model">
-             <CircleLoader
+      {loadingConfigs || loadingUser ? 
+        <div className="model">
+            <div className="loading_container">
+                <CircleLoader
                     color={"#ffffff"}
                     loading={true}
-                    cssOverride={override}
-                    size={15}
+                    cssOverride={{display: "block",margin: "0 auto"}}
+                    size={150}
                     aria-label="Loading Spinner"
-                    data-testid="loader"/>    
-      </div> : <></>}
+                    data-testid="loader"/>   
+                <div className="loading_text">
+                    {loadingConfigs ? "Loading Configurations..." : "Authenticating..."}
+                </div>
+            </div> 
+        </div> 
+      : <></>}
   
       <div className="page">
   
@@ -130,7 +143,7 @@ function UserView(){
   
         <div className="page_section_right">
   
-          <Header refetchLocations={getData}/>
+          <Header refetchLocations={getData} refetching={loading}/>
   
           <div className="body_locations">
   
@@ -160,13 +173,39 @@ function UserView(){
     </>);
   }
 
-  function Header({refetchLocations}){
+  function Header({refetchLocations,refetching}){
 
-    const { token } = useAuth();
+    const { token, loadingUser } = useAuth();
+
+    const override = {
+        display: "block",
+        opacity: .5,
+        margin: "0 auto",
+        borderColor: "black",
+      };
   
-    return( <div className="header">
-      {token && token?.username ? <>Welcome{token.username}</> : <></> }
-      <button onClick={e=>refetchLocations()}>Refresh</button>
+    return( 
+    <div className="header">
+      <span>
+      {loadingUser ? 
+        <>Athenticating....</> : 
+        <>Welcome {token && token?.username ? <>{token.username}</> : <>Guest</> }    
+      </>}
+      </span>
+      
+      <span> <button disabled={refetching} onClick={e=>refetchLocations()}>Refresh</button> </span>
+      <span>{refetching ? 
+        <div>
+            fetching data
+            <CircleLoader
+                color={"#ffffff"}
+                loading={true}
+                cssOverride={override}
+                size={15}
+                aria-label="Loading Spinner"
+                data-testid="loader"/>      
+        </div> 
+      : <>fetching data done</>}</span> 
     </div>);
   }
   

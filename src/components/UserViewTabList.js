@@ -42,7 +42,7 @@ function UserViewTabList({
                     size={15}
                     aria-label="Loading Spinner"
                     data-testid="loader"/>               
-                </> : userView.error ? "error": getType(userView.type)}</div>
+                </> : userView.error ? "auth err": getType(userView.type)}</div>
             </div>)} 
       </div>
     </>);
