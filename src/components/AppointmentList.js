@@ -140,7 +140,7 @@ function AppointmentList({
     }
 
     return(<>
-        <div className={isAppointmentSelected ? "appointment_card appointment_card_selected" : "appointment_card"  }  
+        <div className={`appointment_card ${isAppointmentSelected  && `appointment_card_selected`}`} 
             onClick={e=> selectAppointment(id)}>
                 {getUI(mode)}
         </div>
@@ -187,8 +187,6 @@ function AppointmentForm({
  // LocationFormState = ""
 }){
 
-    //console.log("form: ", form)
-  
     const { isStoreOwner, isUser } = useAuth();
     const { config } = useConfig();  
 
@@ -232,12 +230,13 @@ function AppointmentForm({
 
         <div className={`form_row ${isUser() && `top_margin_add_user_apt`}`}> type:
           <div className="appointment_card_icons">
-              {isUser() ? <>
+              {isUser() ? 
+              <>
                 <IconList 
-                iconSize={16}
-                icons={validAppointmentTypes}
-                selectedIcons={selectedIcons}
-                toggleIcon={toggleIcon}/>          
+                  iconSize={16}
+                  icons={validAppointmentTypes}
+                  selectedIcons={selectedIcons}
+                  toggleIcon={toggleIcon}/>          
               </> : <>
                 <IconList icons={validAppointmentTypes}/>       
               </>}           

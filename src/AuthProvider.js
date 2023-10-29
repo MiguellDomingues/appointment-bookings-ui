@@ -1,10 +1,4 @@
-
-import {useEffect,createContext } from "react";
-
-import React from 'react'
-
-
-
+import {useEffect,createContext, useState, useContext } from "react";
 
 const AuthContext = createContext(null);
 
@@ -16,16 +10,11 @@ export const AuthProvider = ({
   onLogInFinally =()=>{},
 }) => {
 
-    const [token, setToken] = React.useState(null);
+    const [token, setToken] = useState(null);
+    const [config, setConfig] = useState(null);
 
-    const [config, setConfig] = React.useState(null);
-
-    //const { startSession, registerUser, endSession } = auth
-    //const { fetchClientConfigs } = configs
-
-   // const [loading, setLoading] = React.useState(false);
-
-    const [loadingUser, setLoadingUser] = React.useState(false);
+    const [loadingUser, setLoadingUser] = useState(false);
+    const [loadingConfigs, setLoadingConfigs] = useState(false);
 
 ///////////////TEMP FETCHING CONFIGS HERE ///////////////////////////////
 
@@ -52,8 +41,7 @@ export const AuthProvider = ({
     }
 
     const finish = (r) => {
-     // console.log("FINISH CONFIG")
-    //  setLoading(false)
+      setLoadingConfigs(false);
     }
 
     /*
@@ -70,6 +58,16 @@ console.log("******************************")
 
     }
 
+
+
+
+
+
+
+
+
+
+
     */
     useEffect( () => {
        // console.log("USEFFECT")
@@ -81,8 +79,17 @@ console.log("******************************")
          // if(dataFetchedRef.current) return
  
           const dataFetch = async () => {    
-          // setLoading(true) 
-           await _fetchClientConfigs(null).then(success, failure).finally(finish)  
+
+            function randomIntFromInterval(min, max) { // min and max included 
+              return Math.floor(Math.random() * (max - min + 1) + min)
+            }
+  
+
+            setLoadingConfigs(true);
+            setTimeout(async ()=>{
+              await _fetchClientConfigs(null).then(success, failure).finally(finish)  
+            }, randomIntFromInterval(1000, 5000))  
+           
          };
   
          // dataFetchedRef.current = true;
@@ -103,29 +110,29 @@ console.log("******************************")
 
        async function internalLogOn(credentials, config){
 
-        function randomIntFromInterval(min, max) { // min and max included 
-          return Math.floor(Math.random() * (max - min + 1) + min)
-        }
+          function randomIntFromInterval(min, max) { // min and max included 
+            return Math.floor(Math.random() * (max - min + 1) + min)
+          }
 
-        setLoadingUser(true)
-        const auth_path = `${config.DOMAIN}${config.ENDPOINT_URL_AUTH}`
+          setLoadingUser(true)
+          const auth_path = `${config.DOMAIN}${config.ENDPOINT_URL_AUTH}`
 
-        setTimeout(async ()=>{
-          await startSession(credentials,auth_path)
-          .then((t)=>{
-            t.username = credentials.username
-            setToken(t); 
-            onLogInSuccess(t);
-          }, 
-          (err)=>{
-            onLogInError(err)
-          })
-          .finally(()=>{
-            setLoadingUser(false)
-            onLogInFinally();
-            
-          })
-        }, randomIntFromInterval(1000, 5000))  
+          setTimeout(async ()=>{
+            await startSession(credentials,auth_path)
+            .then((t)=>{
+              t.username = credentials.username
+              setToken(t); 
+              onLogInSuccess(t);
+            }, 
+            (err)=>{
+              onLogInError(err)
+            })
+            .finally(()=>{
+              setLoadingUser(false)
+              onLogInFinally();
+              
+            })
+          }, randomIntFromInterval(1000, 5000))  
        
        }
 
@@ -155,6 +162,7 @@ console.log("******************************")
       token,
       config,
       loadingUser: loadingUser,
+      loadingConfigs: loadingConfigs,
       onLogin: handleLogin,
       onLogout: handleLogout,
       onRegistration: handleRegistration,
@@ -173,11 +181,11 @@ console.log("******************************")
   };
 
 export const useAuth = () => {
-  return React.useContext(AuthContext);
+  return useContext(AuthContext);
 };
 
 export const useConfig = () => {
-  return React.useContext(AuthContext);
+  return useContext(AuthContext);
 };
 
 
