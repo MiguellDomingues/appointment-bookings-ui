@@ -5,6 +5,8 @@ import useAPI from '../useAPI'
 
 import {IconList, getIcons} from './IconList'
 
+import useIcons from '../hooks/useIcons'
+
 import '../styles.css';
 
 const LocationFormState = Object.freeze({
@@ -26,12 +28,20 @@ function LocationList({
     locations = [], 
     selectedLocationId = null, 
     selectLocation = ()=>{}, 
-    refetchLocations = ()=>{} 
+    refetchLocations = ()=>{}, 
+    handleManageAppointments = ()=>{}, 
 }){
   
     const { isStoreOwner } = useAuth();  
 
-    const {loading, deleteLocation, editLocation, postLocation  } = useAPI()
+    const {loading, deleteLocation, editLocation, postLocation  } = useAPI();
+
+    const {
+        selectedIcons,
+        toggleIcon,
+        getDisabledIconsForLocations,
+        filterLocationsBySelectedIcons,
+    } = useIcons();
   
     function _postLocation(new_location){
       postLocation({new_location},(result)=>{refetchLocations()})
@@ -45,13 +55,27 @@ function LocationList({
         editLocation({location},(result)=>{refetchLocations()})
     }
 
+    const filteredLocations = filterLocationsBySelectedIcons(locations,selectedIcons);
+    const disabledIcons = getDisabledIconsForLocations(locations);
+
     return(<>
-      {locations ? locations.map( (location, idx)=>
+
+        <div className="icon_list_container">
+            <IconList 
+                iconSize={24}
+                disabledIcons={disabledIcons}
+                icons={getIcons()}
+                selectedIcons={selectedIcons}
+                toggleIcon={toggleIcon}/>
+            </div>
+
+
+      {filteredLocations ? filteredLocations.map( (location, idx)=>
           <LocationPanel
             key={idx}
             isLocationSelected = {location.id === selectedLocationId}
             startingMode = {LocationPanelState.Card}
-            {...{location,selectLocation,_deleteLocation, _editLocation}}/>) 
+            {...{location,selectLocation,_deleteLocation, _editLocation, handleManageAppointments}}/>) 
         : <></>}
 
         {isStoreOwner() ? <>
@@ -69,15 +93,16 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
     _postLocation = ()=>{},
     _deleteLocation=()=>{}, 
     _editLocation=()=>{},
+    handleManageAppointments = ()=>{},
     startingMode = LocationPanelState.Card,
     selectedLocationId = ""
 }){
 
-    const [ mode, setMode ] = useState( startingMode )
+    const [ mode, setMode ] = useState( startingMode );
 
-    useEffect(()=>setMode(startingMode), [isLocationSelected, selectedLocationId])
+    useEffect(()=>setMode(startingMode), [isLocationSelected, selectedLocationId]);
 
-    const { id } = location
+    const { id } = location;
 
     function getUI(selectedMode){
         
@@ -104,7 +129,7 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
             case LocationPanelState.Card:
                 return<> 
                      <LocationCard 
-                        {...{location, isLocationSelected}}
+                        {...{location, isLocationSelected, handleManageAppointments}}
                         handleDeleteLocation={id=>_deleteLocation(id)}
                         handleSetEdit={_=>setMode(LocationPanelState.Edit)}/>
                 </>;
@@ -124,10 +149,10 @@ function LocationCard({
     location = {},
     isLocationSelected,
     handleDeleteLocation =()=>{},
-    handleSetEdit = () =>{}
-
+    handleSetEdit = () =>{},
+    handleManageAppointments = () =>{}
 }){
-    const { isStoreOwner } = useAuth();  
+    const { isStoreOwner, isUser } = useAuth();  
     const {info, address, id, LatLng, icons} = location
 
     return(<>
@@ -136,11 +161,19 @@ function LocationCard({
         </div>
         <div>info: {info}</div>
         <div>address: {address}</div>
-        {isStoreOwner() && isLocationSelected ? 
-            <div className="location_card_btns"> 
-                    <button onClick={e=>handleDeleteLocation(id)} className="">Delete</button>
-                    <button onClick={e=>handleSetEdit()} className="">Edit</button>
-            </div> : <></>}
+        {isLocationSelected ? <> 
+                <div className="location_card_btns">  
+                    { isStoreOwner() ? <>
+                        <button onClick={e=>handleDeleteLocation(id)} className="">Delete</button>
+                        <button onClick={e=>handleSetEdit()} className="">Edit</button>
+                        <button onClick={e=>handleManageAppointments()} className="">Manage Appointments</button>
+                    </> 
+                    : isUser() ? <>
+                        <button onClick={e=>handleManageAppointments()} className="">Manage Appointments</button>
+                    </> : <></>}
+                </div>
+            </>
+        : <></>}
     </>);
 }
 
@@ -152,23 +185,7 @@ function LocationForm({
  // LocationFormState = ""
  }){
 
-    const [selectedIcons, setSelectedIcons] = useState(currentIcons);
-
-    function toggleIcon(icon_key = ""){
-
-        console.log(icon_key)
-        if(!getIcons().includes(icon_key)){
-          return
-        }
-       
-        if(selectedIcons.includes(icon_key)){
-         // setSelectedIcons(...selectedIcons.filter(icon=>icon !== icon_key) )
-          setSelectedIcons( (selectedIcons)=>selectedIcons.filter(icon=>icon !== icon_key) )
-        }else{
-         // setSelectedIcons([...selectedIcons, icon_key])
-          setSelectedIcons( (selectedIcons)=>[...selectedIcons, icon_key] )
-        }
-      }
+    const {selectedIcons,toggleIcon} = useIcons();
 
     const [ formFields, setFormFeilds ] = useState({...form})
     const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() && selectedIcons.length > 0

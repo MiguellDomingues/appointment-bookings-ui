@@ -4,6 +4,8 @@ import { useAuth, useConfig } from '../AuthProvider'
 
 import {IconList, getIcons} from './IconList'
 
+import useIcons from '../hooks/useIcons'
+
 import useAPI from '../useAPI'
 
 import '../styles.css';
@@ -22,6 +24,7 @@ const appointmentForm = {
 });
 
 function AppointmentList({
+  //locations = [],
   appointments = [],
   icons = [], 
   selectedLocationId = null, 
@@ -30,14 +33,12 @@ function AppointmentList({
 
     const { isUser } = useAuth();   
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-  
+
     useEffect(()=>{
       setSelectedAppointmentId(null)
     }, [selectedLocationId]) // when user selects a new location, close new appointment panel and clear the selected appointment
   
-  
     const { loading, postAppointment, deleteAppointment, editAppointmentStatus } = useAPI()
-  
   
     function _postAppointment(formFields){
   
@@ -65,27 +66,22 @@ function AppointmentList({
     function _deleteAppointment(appointment_id){
         deleteAppointment({appointment_id},(result)=>{refetchLocations()})
     }
-  
-    return(<>
-        <div className="appointment_list_wrapper">
 
-            <div className="appointment_list">
-            {appointments.map((appointment, idx)=>  
-                <AppointmentPanel 
-                    key={idx} 
-                    {...{appointment,icons,selectedAppointmentId,selectedLocationId, _deleteAppointment, _editAppointmentStatus}} 
-                    startingMode = {AppointmentPanelState.Card}
-                    isAppointmentSelected = {appointment.id === selectedAppointmentId}
-                    selectAppointment={ (id)=> setSelectedAppointmentId(id) }/>)}
+    return(<>      
+      {appointments.map((appointment, idx)=>  
+          <AppointmentPanel 
+              key={idx} 
+              {...{appointment,icons,selectedAppointmentId,selectedLocationId, _deleteAppointment, _editAppointmentStatus}} 
+              startingMode = {AppointmentPanelState.Card}
+              isAppointmentSelected = {appointment.id === selectedAppointmentId}
+              selectAppointment={ (id)=> setSelectedAppointmentId(id) }/>)}
 
-            {isUser() ? // users can see a button for appointment creations
-                <>
-                  <AppointmentPanel
-                    {...{icons, _postAppointment, selectedAppointmentId}}
-                    startingMode = {AppointmentPanelState.AddButton}/>
-                </>  : <></>}
-            </div>
-        </div>
+      {isUser() ? // users can see a button for appointment creations
+          <>
+            <AppointmentPanel
+              {...{icons, _postAppointment, selectedAppointmentId}}
+              startingMode = {AppointmentPanelState.AddButton}/>
+          </>  : <></>}
     </>);
   }
 
@@ -138,7 +134,6 @@ function AppointmentList({
             default: return <></>
         }
     }
-
     return(<>
         <div className={`appointment_card ${isAppointmentSelected  && `appointment_card_selected`}`} 
             onClick={e=> selectAppointment(id)}>
@@ -160,15 +155,30 @@ function AppointmentList({
 
   return(<>
     <div className="form_row">
-      <div>  type:  </div>
+      <div>  type  </div>
       <div className="appointment_card_icons">
         <IconList icons={appointment_types} iconSize={15}/>
       </div>
     </div>
-    <div className="form_row"> date: {date} </div>
-    <div className="form_row"> end: {end} </div>
-    <div className="form_row">start: {start} </div>
-    <div className="form_row"> status: {status}</div>
+    <div className="form_row"> 
+        <div>date</div>
+        <div>{/*date*/} 10/10/23 </div>
+    </div>
+
+    <div className="form_row">
+      <div>start-time </div>
+      <div>{/*start*/} 10:30 AM </div>
+    </div>
+
+    <div className="form_row">
+      <div>  end-time </div>
+      <div> {/*end*/} 11:30 AM </div>
+    </div>
+
+    <div className="form_row"> 
+      <div> status </div>
+      <div> {status} </div>
+    </div>
 
     {isUser() ? <>
         <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>handleDeleteAppointment(id)}>Cancel</button>
@@ -190,23 +200,10 @@ function AppointmentForm({
     const { isStoreOwner, isUser } = useAuth();
     const { config } = useConfig();  
 
-    const [selectedIcons, setSelectedIcons] = useState([]);
-
-    function toggleIcon(icon_key = ""){
-
-        console.log(icon_key)
-        if(!getIcons().includes(icon_key)){
-          return
-        }
-       
-        if(selectedIcons.includes(icon_key)){
-         // setSelectedIcons(...selectedIcons.filter(icon=>icon !== icon_key) )
-          setSelectedIcons( (selectedIcons)=>selectedIcons.filter(icon=>icon !== icon_key) )
-        }else{
-         // setSelectedIcons([...selectedIcons, icon_key])
-          setSelectedIcons( (selectedIcons)=>[...selectedIcons, icon_key] )
-        }
-      }
+    const {
+        selectedIcons,
+        toggleIcon,
+    } = useIcons();
   
     const [ formFields, setFormFeilds ] = useState(form)
 
@@ -250,11 +247,11 @@ function AppointmentForm({
             {isUser() ? <input name="date" value={formFields.date.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.date}</>}
           </div>
           <div className="form_row">
-            start:  
+            start-time:  
             {isUser() ? <input name="start_time" value={formFields.start_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.start_time}</>}
           </div>
           <div className="form_row">
-            end: 
+            end-time: 
             {isUser() ? <input name="end_time" value={formFields.end_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.end_time}</>} 
           </div>
 
