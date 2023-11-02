@@ -224,7 +224,7 @@
   display: block; /* Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 3; /* Sit on top */
-  padding-top: 15%; /* Location of the box */
+ /* padding-top: 15%;  Location of the box */
   left: 0;
   top: 0;
   width: 100%; /* Full width */
@@ -238,6 +238,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 100%;
 }
 
 .loading_text{
@@ -245,6 +247,16 @@
   color: white;
   font-size: larger;
   font-weight: 400;
+}
+
+.container_model{
+  position: absolute; /* Stay in place */
+  z-index: 3; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
 
 

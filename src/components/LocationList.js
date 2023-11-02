@@ -5,7 +5,11 @@ import useAPI from '../useAPI'
 
 import {IconList, getIcons} from './IconList'
 
+import {useAppContext} from '../AppContextProvider'
+
 import useIcons from '../hooks/useIcons'
+
+import CircleLoader from "react-spinners/ClipLoader";
 
 import '../styles.css';
 
@@ -24,17 +28,11 @@ const LocationPanelState = Object.freeze({
 
 const locationForm =  {address: "", info: "", icons: []}
 
-function LocationList({
-    locations = [], 
-    selectedLocationId = null, 
-    selectLocation = ()=>{}, 
-    refetchLocations = ()=>{}, 
-    handleManageAppointments = ()=>{}, 
-}){
+function LocationList({locations = []}){
   
-    const { isStoreOwner } = useAuth();  
-
-    const {loading, deleteLocation, editLocation, postLocation  } = useAPI();
+    const { isStoreOwner } = useAuth();
+    
+    const { selectedLocationId } = useAppContext()
 
     const {
         selectedIcons,
@@ -43,66 +41,53 @@ function LocationList({
         filterLocationsBySelectedIcons,
     } = useIcons();
   
-    function _postLocation(new_location){
-      postLocation({new_location},(result)=>{refetchLocations()})
-    }
-  
-    function _deleteLocation(location_id){
-        deleteLocation({location_id},(result)=>{refetchLocations()})  
-    }
-  
-    function _editLocation(location){
-        editLocation({location},(result)=>{refetchLocations()})
-    }
-
     const filteredLocations = filterLocationsBySelectedIcons(locations,selectedIcons);
-    const disabledIcons = getDisabledIconsForLocations(locations);
+    const disabledIcons = getDisabledIconsForLocations(filteredLocations);
 
     return(<>
 
-        <div className="icon_list_container">
+        {<div className="icon_list_container">
             <IconList 
                 iconSize={24}
                 disabledIcons={disabledIcons}
                 icons={getIcons()}
                 selectedIcons={selectedIcons}
                 toggleIcon={toggleIcon}/>
-            </div>
+        </div>}
 
 
-      {filteredLocations ? filteredLocations.map( (location, idx)=>
-          <LocationPanel
-            key={idx}
-            isLocationSelected = {location.id === selectedLocationId}
-            startingMode = {LocationPanelState.Card}
-            {...{location,selectLocation,_deleteLocation, _editLocation, handleManageAppointments}}/>) 
-        : <></>}
+            {filteredLocations.map( (location, idx)=>
+                <LocationPanel
+                    key={idx}
+                    isLocationSelected = {location.id === selectedLocationId}
+                    startingMode = {LocationPanelState.Card}
+                    {...{location,}}/>)}
 
-        {isStoreOwner() ? <>
-            <LocationPanel   
-                startingMode = {LocationPanelState.AddButton}
-                {...{_postLocation}}/>
-        </> : <></> }
+                {isStoreOwner() ? <>
+                    <LocationPanel startingMode = {LocationPanelState.AddButton}/>          
+                </> : <></> }
+
     </>)
 }
 
 function LocationPanel({ //a panel encapsulates the different UI states for a location
     location = {},
     isLocationSelected = false,
-    selectLocation=()=>{}, 
-    _postLocation = ()=>{},
-    _deleteLocation=()=>{}, 
-    _editLocation=()=>{},
-    handleManageAppointments = ()=>{},
     startingMode = LocationPanelState.Card,
-    selectedLocationId = ""
+
 }){
 
     const [ mode, setMode ] = useState( startingMode );
 
-    useEffect(()=>setMode(startingMode), [isLocationSelected, selectedLocationId]);
-
     const { id } = location;
+
+    const { selectLocation, } = useAppContext();
+
+    //const _isLocationSelected = isLocationSelected(id)
+
+    const {loading, editLocation, postLocation } = useAPI();
+
+    useEffect(()=>setMode(startingMode), [isLocationSelected]);// selectedLocationId
 
     function getUI(selectedMode){
         
@@ -113,24 +98,25 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
                 return <>
                     <LocationForm
                         cancelForm={()=>setMode(LocationPanelState.AddButton)}
-                        submitForm ={_postLocation}
-                        form={ locationForm  }
+                        submitForm ={postLocation}
+                        form={ locationForm }
+                        isFormSubmitting = { loading }
                         LocationFormState = {LocationFormState.New}/>
                 </>
             case LocationPanelState.Edit:
                return <>
                     <LocationForm
                         cancelForm={()=>setMode(LocationPanelState.Card)}
-                        submitForm ={_editLocation}
+                        submitForm ={editLocation}
                         form={ {...location} }
+                        isFormSubmitting = { loading }
                         LocationFormState = {LocationFormState.Edit}
                         currentIcons={location.icons}/>
                 </>
             case LocationPanelState.Card:
                 return<> 
                      <LocationCard 
-                        {...{location, isLocationSelected, handleManageAppointments}}
-                        handleDeleteLocation={id=>_deleteLocation(id)}
+                        {...{location, isLocationSelected, }} //handleManageAppointments
                         handleSetEdit={_=>setMode(LocationPanelState.Edit)}/>
                 </>;
             default: return <></>
@@ -148,14 +134,35 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
 function LocationCard({
     location = {},
     isLocationSelected,
-    handleDeleteLocation =()=>{},
     handleSetEdit = () =>{},
-    handleManageAppointments = () =>{}
 }){
     const { isStoreOwner, isUser } = useAuth();  
     const {info, address, id, LatLng, icons} = location
 
+    const {loading, deleteLocation } = useAPI();
+
+    const { handleManageAppointments, refetchLocations} = useAppContext();
+
+    const handleDeleteLocation = (id) => deleteLocation({id}, ()=>refetchLocations())
+
+    const override = {
+        opacity: .5,
+        borderColor: "black",
+    };
+    
     return(<>
+          { loading ? <div className="container_model">
+            <div className="loading_container">
+                <CircleLoader
+                    color={"#ffffff"}
+                    loading={true}
+                    cssOverride={override}
+                    size={15}
+                    aria-label="Loading Spinner"
+                    data-testid="loader"/>   
+            </div>   
+        </div> : <></>}
+
         <div className="icon_list_container">
             <IconList icons={icons}/>
         </div>
@@ -182,10 +189,12 @@ function LocationForm({
   submitForm = ()=>{},
   form = locationForm,
   currentIcons = [],
+  isFormSubmitting = false
  // LocationFormState = ""
  }){
 
-    const {selectedIcons,toggleIcon} = useIcons();
+    const { refetchLocations } = useAppContext();
+    const {selectedIcons,toggleIcon} = useIcons(currentIcons);
 
     const [ formFields, setFormFeilds ] = useState({...form})
     const areFieldsValid = () => formFields.info.trim() && formFields.address.trim() && selectedIcons.length > 0
@@ -198,12 +207,35 @@ function LocationForm({
 
     function handleSubmit(e){
         e.preventDefault();
-        console.log(formFields, selectedIcons);
-        submitForm ({...formFields, icons: [...selectedIcons]});
-        cancelForm();
+        //console.log(formFields, selectedIcons);
+        const submitObject = {...formFields, icons: [...selectedIcons]}
+        submitForm (
+            { submitObject }, 
+            ()=>{
+                refetchLocations()
+                cancelForm()
+        })
     }   
 
+    const override = {
+        opacity: .5,
+        borderColor: "black",
+    };
+
     return(<>
+
+       { isFormSubmitting ? <div className="container_model">
+            <div className="loading_container">
+                <CircleLoader
+                    color={"#ffffff"}
+                    loading={true}
+                    cssOverride={override}
+                    size={15}
+                    aria-label="Loading Spinner"
+                    data-testid="loader"/>   
+            </div>   
+        </div> : <></>}
+
         <div className="icon_list_container">
             <IconList 
                 iconSize={20}

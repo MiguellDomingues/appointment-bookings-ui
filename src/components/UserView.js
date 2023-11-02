@@ -8,7 +8,7 @@ import AppointmentList from './AppointmentList'
 import MyMap from './Map.tsx'
 import { IconList, getIcons } from './IconList'
 
-import useIcons from '../hooks/useIcons'
+import {useAppContext} from '../AppContextProvider'
 
 import useAPI from '../useAPI'
 import '../styles.css';
@@ -37,7 +37,14 @@ function UserView({
     const [selectedLocationId, setSelectedLocation] = useState(null);
 
     useEffect( () => getData(), [token, config]);
-  
+
+  const val = useAppContext();
+
+  val.handleManageAppointments = () =>setMode(BodyPanelState.Appointment)
+  val.refetchLocations = () => getData()
+  val.selectedLocationId = selectedLocationId
+  val.selectLocation = (id) => setSelectedLocation(id)
+
     function getData(){ 
         setLoading(true)
 
@@ -61,25 +68,28 @@ function UserView({
  
     const { appointments, icons } =  getSelectedLocationAppointmentsIcons(data, selectedLocationId);
 
-    const isLocationSelected = () => selectedLocationId !== null;
+    //const isLocationSelected = () => selectedLocationId !== null;
 
     function getUI(selectedMode){      
       switch(selectedMode){
           case BodyPanelState.Location:
               return <>
-                <LocationList 
-                  {...{selectedLocationId}}
-                  locations={data}
-                  selectLocation={ (id)=>setSelectedLocation(id) }
-                  refetchLocations={getData}
-                  handleManageAppointments={()=>setMode(BodyPanelState.Appointment)}/>
+                <div className="body_panel body_locations">
+                  <LocationList 
+                    {...{selectedLocationId}}
+                    locations={data}
+                    selectLocation={ (id)=>setSelectedLocation(id) }
+                    handleManageAppointments={()=>setMode(BodyPanelState.Appointment)}/>
+                </div>
               </>
           case BodyPanelState.Appointment:
               return <>
-                  <button onClick={e=>setMode(BodyPanelState.Location)} className="cancel_new_appointment_btn">X</button>
-                  <AppointmentList 
-                    {...{appointments, icons, selectedLocationId}}
-                    refetchLocations={getData}/> 
+                  <div className="body_panel body_appointments">
+                    <button onClick={e=>setMode(BodyPanelState.Location)} className="cancel_new_appointment_btn">X</button>
+                    <AppointmentList 
+                      {...{appointments, icons, selectedLocationId}}
+                      refetchLocations={getData}/> 
+                  </div>
               </>
           default: return <></>
       }
@@ -116,10 +126,8 @@ function UserView({
         <div className="page_section_right">
   
           <Header refetchLocations={getData} refetching={loading}/>
-  
-          <div className={`body_panel ${mode === BodyPanelState.Location ? `body_locations` : `body_appointments`}`}>
-            {getUI(mode)}
-          </div>
+          {getUI(mode)}
+         
         </div>
 
       </div>
