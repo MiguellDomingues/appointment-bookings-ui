@@ -9,7 +9,7 @@ import {useAppContext} from '../AppContextProvider'
 
 import useIcons from '../hooks/useIcons'
 
-import CircleLoader from "react-spinners/ClipLoader";
+import LoadingOverlay from './LoadingOverlay'
 
 import '../styles.css';
 
@@ -87,7 +87,7 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
 
     const {loading, editLocation, postLocation } = useAPI();
 
-    useEffect(()=>setMode(startingMode), [isLocationSelected]);// selectedLocationId
+    //useEffect(()=>setMode(startingMode), [isLocationSelected]);// selectedLocationId
 
     function getUI(selectedMode){
         
@@ -145,27 +145,13 @@ function LocationCard({
 
     const handleDeleteLocation = (id) => deleteLocation({id}, ()=>refetchLocations())
 
-    const override = {
-        opacity: .5,
-        borderColor: "black",
-    };
-    
     return(<>
-          { loading ? <div className="container_model">
-            <div className="loading_container">
-                <CircleLoader
-                    color={"#ffffff"}
-                    loading={true}
-                    cssOverride={override}
-                    size={15}
-                    aria-label="Loading Spinner"
-                    data-testid="loader"/>   
-            </div>   
-        </div> : <></>}
+        <LoadingOverlay isLoading={loading} isFullscreen={false}/>
 
         <div className="icon_list_container">
             <IconList icons={icons}/>
         </div>
+
         <div>info: {info}</div>
         <div>address: {address}</div>
         {isLocationSelected ? <> 
@@ -217,24 +203,8 @@ function LocationForm({
         })
     }   
 
-    const override = {
-        opacity: .5,
-        borderColor: "black",
-    };
-
     return(<>
-
-       { isFormSubmitting ? <div className="container_model">
-            <div className="loading_container">
-                <CircleLoader
-                    color={"#ffffff"}
-                    loading={true}
-                    cssOverride={override}
-                    size={15}
-                    aria-label="Loading Spinner"
-                    data-testid="loader"/>   
-            </div>   
-        </div> : <></>}
+        <LoadingOverlay isLoading={isFormSubmitting} isFullscreen={false}/>
 
         <div className="icon_list_container">
             <IconList 

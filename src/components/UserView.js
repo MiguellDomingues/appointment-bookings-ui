@@ -1,14 +1,13 @@
 import { useAuth,useConfig,} from '../AuthProvider'
 import {useState, useEffect, useMemo } from 'react'
 
-import CircleLoader from "react-spinners/ClipLoader";
-
 import LocationList from './LocationList'
 import AppointmentList from './AppointmentList'
 import MyMap from './Map.tsx'
-import { IconList, getIcons } from './IconList'
 
 import {useAppContext} from '../AppContextProvider'
+
+import LoadingOverlay from './LoadingOverlay'
 
 import useAPI from '../useAPI'
 import '../styles.css';
@@ -75,6 +74,12 @@ function UserView({
           case BodyPanelState.Location:
               return <>
                 <div className="body_panel body_locations">
+
+                <LoadingOverlay 
+                  isLoading={loading && !loadingConfigs && !loadingUser} 
+                  isFullscreen={false}
+                  loadingText={"Loading Data"}/>
+
                   <LocationList 
                     {...{selectedLocationId}}
                     locations={data}
@@ -97,23 +102,16 @@ function UserView({
 
     return (<>     
 
-      {loadingConfigs || loadingUser ? 
-        <div className="model">
-            <div className="loading_container">
-                <CircleLoader
-                    color={"#ffffff"}
-                    loading={true}
-                    cssOverride={{display: "block",margin: "0 auto"}}
-                    size={150}
-                    aria-label="Loading Spinner"
-                    data-testid="loader"/>   
-                <div className="loading_text">
-                    {loadingConfigs ? "Loading Configurations..." : "Authenticating..."}
-                </div>
-            </div> 
-        </div> 
-      : <></>}
-  
+    <LoadingOverlay 
+      isLoading={loadingConfigs} 
+      isFullscreen={true}
+      loadingText={"Loading Configurations..."}/>
+
+    <LoadingOverlay 
+      isLoading={loadingUser} 
+      isFullscreen={true}
+      loadingText={"Authenticating..."}/>
+
       <div className="page">
   
         <div className="page_section_left">
@@ -138,13 +136,6 @@ function UserView({
 
     const { token, loadingUser } = useAuth();
 
-    const override = {
-        display: "block",
-        opacity: .5,
-        margin: "0 auto",
-        borderColor: "black",
-      };
-  
     return( 
     <div className="header">
       <span>
@@ -155,20 +146,7 @@ function UserView({
       </span>
       
       <span> <button disabled={refetching} onClick={e=>refetchLocations()}>Refresh</button> </span>
-      <span>{refetching ? 
-        <div>
-            fetching data
-            <CircleLoader
-                color={"#ffffff"}
-                loading={true}
-                cssOverride={override}
-                size={15}
-                aria-label="Loading Spinner"
-                data-testid="loader"/>      
-        </div> 
-      : <>fetching data done</>}</span> 
     </div>);
   }
   
-
   export default UserView;
