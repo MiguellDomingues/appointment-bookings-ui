@@ -74,23 +74,28 @@ function UserView({
           case BodyPanelState.Location:
               return <>
                 <div className="body_panel body_locations">
+                  <LoadingOverlay 
+                    isLoading={loading && !loadingConfigs && !loadingUser} 
+                    isFullscreen={false}
+                    loadingText={"Loading Data"}/>
 
-                <LoadingOverlay 
-                  isLoading={loading && !loadingConfigs && !loadingUser} 
-                  isFullscreen={false}
-                  loadingText={"Loading Data"}/>
-
-                  <LocationList 
-                    {...{selectedLocationId}}
-                    locations={data}
-                    selectLocation={ (id)=>setSelectedLocation(id) }
-                    handleManageAppointments={()=>setMode(BodyPanelState.Appointment)}/>
+                    <LocationList 
+                      {...{selectedLocationId}}
+                      locations={data}
+                      selectLocation={ (id)=>setSelectedLocation(id) }
+                      handleManageAppointments={()=>setMode(BodyPanelState.Appointment)}/>
                 </div>
               </>
           case BodyPanelState.Appointment:
               return <>
                   <div className="body_panel body_appointments">
                     <button onClick={e=>setMode(BodyPanelState.Location)} className="cancel_new_appointment_btn">X</button>
+                    
+                    <LoadingOverlay 
+                    isLoading={loading && !loadingConfigs && !loadingUser} 
+                    isFullscreen={false}
+                    loadingText={"Loading Data"}/>
+
                     <AppointmentList 
                       {...{appointments, icons, selectedLocationId}}
                       refetchLocations={getData}/> 
