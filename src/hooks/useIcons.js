@@ -3,14 +3,13 @@ import {useState } from 'react'
 
 import { getIcons } from '../components/IconList'
 
-function useIcons(){
+function useIcons(icons = []){
 
-    const [selectedIcons, setSelectedIcons] = useState([]);
+    const [selectedIcons, setSelectedIcons] = useState(icons);
 
     function toggleIcon(icon_key = ""){
 
-        //console.log(icon_key)
-        if(!getIcons().includes(icon_key)){
+        if(!getIcons().includes(icon_key)){ //if the icon does not exist in the icon list
             return
         }
         

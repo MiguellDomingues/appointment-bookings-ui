@@ -40,15 +40,9 @@ function AppointmentList({
     context.selectedAppointmentId = selectedAppointmentId;
     context.setSelectedAppointmentId = (id)=> setSelectedAppointmentId(id)
 
-    console.log("selected apt:", selectedAppointmentId)
+   // console.log("selected apt:", selectedAppointmentId)
  
     return(<>  
-        {appointments.map((appointment, idx)=>  
-            <AppointmentPanel 
-                key={idx} 
-                {...{appointment,icons}} 
-                startingMode = {AppointmentPanelState.Card}
-                isAppointmentSelected = {appointment.id === selectedAppointmentId}/>)}
 
         {isUser() ? // users can see a button for appointment creations
             <>
@@ -56,6 +50,16 @@ function AppointmentList({
                 {...{icons}}
                 startingMode = {AppointmentPanelState.AddButton}/>
             </>  : <></>}
+
+
+        {appointments.map((appointment, idx)=>  
+            <AppointmentPanel 
+                key={idx} 
+                {...{appointment,icons}} 
+                startingMode = {AppointmentPanelState.Card}
+                isAppointmentSelected = {appointment.id === selectedAppointmentId}/>)}
+
+        
 
     </>);
   }
@@ -167,7 +171,7 @@ function AppointmentList({
 
   const { isUser, isStoreOwner } = useAuth();  
 
-  const {id, date,end,start, status, appointment_types} = appointment
+  const {id, date,end,start, status, appointment_types, appointee} = appointment
 
    const { loading, deleteAppointment } = useAPI();
 
@@ -177,13 +181,15 @@ function AppointmentList({
     deleteAppointment({appointment_id},(result)=>{refetchLocations()})
 }
   
-const override = {
-  opacity: .5,
-  borderColor: "black",
-};
-
   return(<>
     <LoadingOverlay isLoading={loading} isFullscreen={false}/>
+
+
+
+    {isStoreOwner() ? <div className="form_row"> 
+        <div>customer</div>
+        <div>{appointee}</div>
+    </div> : <></>}
 
     <div className="form_row">
       <div>  type  </div>
@@ -191,6 +197,9 @@ const override = {
         <IconList icons={appointment_types} iconSize={15}/>
       </div>
     </div>
+
+    
+
     <div className="form_row"> 
         <div>date</div>
         <div>{/*date*/} 10/10/23 </div>
@@ -273,24 +282,25 @@ function AppointmentForm({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form className="form_card" onSubmit={handleSubmit}>
           <button onClick={e=>cancelForm()} className="cancel_new_appointment_btn">X</button>
+
           <div className="form_row">
-            date: 
-            {isUser() ? <input name="date" value={formFields.date.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.date}</>}
+            date 
+            {isUser() ? <input type="date" name="date" value={formFields.date.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.date}</>}
           </div>
           <div className="form_row">
-            start-time:  
-            {isUser() ? <input name="start_time" value={formFields.start_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.start_time}</>}
+            start-time 
+            {isUser() ? <input type="time" name="start_time" value={formFields.start_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.start_time}</>}
           </div>
           <div className="form_row">
-            end-time: 
-            {isUser() ? <input name="end_time" value={formFields.end_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.end_time}</>} 
+            end-time
+            {isUser() ? <input type="time" name="end_time" value={formFields.end_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.end_time}</>} 
           </div>
 
          {isStoreOwner() ?  
             <div className="form_row">
-                status:
+                status
                 <select name="status" value={formFields.status} onChange={handleChange}>
                   {config.STATUS.map((status,idx)=>
                     <option key={idx} value={status}>{status}</option>) }                   

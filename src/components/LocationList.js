@@ -28,21 +28,18 @@ const LocationPanelState = Object.freeze({
 
 const locationForm =  {address: "", info: "", icons: []}
 
-function LocationList({locations = []}){
+function LocationList({
+    locations = [],
+   // selectedLocationId = null
+}){
   
     const { isStoreOwner } = useAuth();
     
-    const { selectedLocationId } = useAppContext()
+    const { selectedLocationId, selectedIcons,toggleIcon } = useAppContext()
 
-    const {
-        selectedIcons,
-        toggleIcon,
-        getDisabledIconsForLocations,
-        filterLocationsBySelectedIcons,
-    } = useIcons();
+    const { getDisabledIconsForLocations } = useIcons();
   
-    const filteredLocations = filterLocationsBySelectedIcons(locations,selectedIcons);
-    const disabledIcons = getDisabledIconsForLocations(filteredLocations);
+    const disabledIcons = getDisabledIconsForLocations(locations);
 
     return(<>
 
@@ -56,16 +53,16 @@ function LocationList({locations = []}){
         </div>}
 
 
-            {filteredLocations.map( (location, idx)=>
-                <LocationPanel
-                    key={idx}
-                    isLocationSelected = {location.id === selectedLocationId}
-                    startingMode = {LocationPanelState.Card}
-                    {...{location,}}/>)}
+        {locations.map( (location, idx)=>
+            <LocationPanel
+                key={idx}
+                isLocationSelected = {location.id === selectedLocationId}
+                startingMode = {LocationPanelState.Card}
+                {...{location,}}/>)}
 
-                {isStoreOwner() ? <>
-                    <LocationPanel startingMode = {LocationPanelState.AddButton}/>          
-                </> : <></> }
+            {isStoreOwner() ? <>
+                <LocationPanel startingMode = {LocationPanelState.AddButton}/>          
+            </> : <></> }
 
     </>)
 }
@@ -145,15 +142,39 @@ function LocationCard({
 
     const handleDeleteLocation = (id) => deleteLocation({id}, ()=>refetchLocations())
 
+    //console.log("location: ", location)
+
     return(<>
         <LoadingOverlay isLoading={loading} isFullscreen={false}/>
 
-        <div className="icon_list_container">
+        {<div className="icon_list_container">
             <IconList icons={icons}/>
+        </div>}
+
+        <div className="location_title">
+            <div className="title">Joes Automotive </div>
         </div>
 
-        <div>info: {info}</div>
-        <div>address: {address}</div>
+        <div className="form_row card_padding">
+                    <div>address</div>
+                    <div>abcdef ave 12131415</div>
+        </div>
+
+        <div className="form_row card_padding">
+                    <div>phone</div>
+                    <div>123-123-1234</div>
+         </div>
+
+        <div className="form_row card_padding">
+            <div>email</div>
+             <div>abcdefkdop@ssdsdsdsds.com</div>
+        </div>
+
+        <div className="form_row card_padding">
+            <div>info</div>
+             <div>{info}</div>
+        </div>
+
         {isLocationSelected ? <> 
                 <div className="location_card_btns">  
                     { isStoreOwner() ? <>

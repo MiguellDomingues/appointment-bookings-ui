@@ -51,6 +51,7 @@
 
 .body_locations{
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .body_appointments{
@@ -87,42 +88,24 @@
   z-index: 999;
 }
 
-.location_card_selected{
-  border: 2px solid #000000;
-  background-color: lightblue;
-}
-
-
 .location_card{
   position: relative;
-  width: 100%;
-  padding: .5rem;
+  padding: .25rem;
   box-sizing: border-box;
   border: 1px solid #dddddd;
-
+  gap: .5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /*align-items: center;*/
+}
+
+.location_card_selected{
+  border: 1px solid #000000;
 }
 
 .user_type_selected{
   color: blue;
 }
-
-/*
-.appointment_list{
-  display: flex;
-  padding: .5rem;
-  box-sizing: border-box;
-  border: 1px solid #dddddd;
-}
-
-.appointment_list_wrapper{
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-*/
 
 .add_apt_btn{
   position: absolute;
@@ -172,13 +155,10 @@
 }
 
 .location_card_btns{
-  position: absolute;
-  top: 0;
-  right: 0;
   display: flex;
-  flex-direction: column;
-}
+  flex-direction: row;
 
+}
 
 .show_view{
   display: flex;
@@ -216,7 +196,7 @@
   display: flex;
 }
 
-.top_margin_add_user_apt{
+.top_margin_apt_card{
   margin-top: 1rem;
 }
 
@@ -258,6 +238,28 @@
   height: 100%; /* Full height */
   background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 }
+
+.location_title{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+
+}
+
+.form_card{
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.card_padding{
+  padding-right: 15%;
+  padding-left: 15%;
+}
+
+
+
 
 
 

@@ -62,7 +62,7 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
           setCenter({lat: lat, lng: lng})
 
           //selectedLocationHandler(null, id)
-          handleSelectedLocation(null,id)
+          handleSelectedLocation(id)
           
 
          // setZoom(4)
