@@ -10,7 +10,8 @@
   box-sizing: border-box;
   border: 1px solid #dddddd;
   display: flex;
-  align-items: end;
+  flex-direction: row;
+  align-items: flex-end;
   justify-content: space-around;
 }
 
@@ -257,6 +258,66 @@
   padding-right: 15%;
   padding-left: 15%;
 }
+
+.calendar_appointments_wrapper{
+  position: relative;
+  min-width: 14%;
+  min-height: 150px;
+}
+
+.calendar_wrapper{
+  width: 100%;
+}
+
+.date_slot{
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
+.appointments_slot{
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  display: flex;
+  flex-direction: column;
+  padding: .5rem;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+  font-size: smaller;
+  gap: .25rem;
+  padding-top: 1rem;
+}
+
+.columns{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border-radius: 25px;
+}
+
+.calendar_appointment_icons{
+  display: flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  min-width: 75%;
+  justify-content: center;
+}
+
+.calendar_appointment_time{
+  display: flex;
+  flex-direction: row;
+  gap: 0.125rem;
+}
+
+/*override yellow background on todays date panel*/
+.reeact-calendar__tile--now {
+  background: white;
+}
+
+
 
 
 

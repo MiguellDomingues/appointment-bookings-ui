@@ -1,8 +1,15 @@
 import { useAuth,useConfig,} from '../AuthProvider'
 import {useState, useEffect, useMemo } from 'react'
 
+import { MemoryRouter, Route, Routes, Navigate,Link } from "react-router";
+
+import 'react-calendar/dist/Calendar.css';
+
 import LocationList from './LocationList'
 import AppointmentList from './AppointmentList'
+
+import CalendarPanel from './CalendarPanel'
+
 import MyMap from './Map.tsx'
 
 import useIcons from '../hooks/useIcons'
@@ -10,6 +17,9 @@ import useIcons from '../hooks/useIcons'
 import {useAppContext} from '../AppContextProvider'
 
 import LoadingOverlay from './LoadingOverlay'
+
+//import DayTimePicker from '@mooncake-dev/react-day-time-picker';
+
 
 import useAPI from '../useAPI'
 import '../styles.css';
@@ -50,6 +60,11 @@ function UserView({
   context.selectLocation = (id) => setSelectedLocation(id)
   context.selectedIcons =  selectedIcons
   context.toggleIcon =  toggleIcon
+  context.selectedCalendarDayAppointments = selectedCalendarDayAppointments
+
+    function selectedCalendarDayAppointments(appointments){
+      console.log(appointments)
+    }
 
     function filterLocationsBySelectedIcons(locations = [], selected_icons = []){
 
@@ -143,10 +158,16 @@ function UserView({
       <div className="page">
   
         <div className="page_section_left">
-          {<MyMap 
-            posts={filteredLocations} 
-            selected={selectedLocationId} 
-            handleSelectedLocation={(id)=>setSelectedLocation(id)} />}
+
+          {isStoreOwner() && filteredLocations[0]?.appointments ? //dont show the calender panel until the storeowner location is loaded and it has an appointments key
+          <>
+            <CalendarPanel appointments={filteredLocations[0].appointments}/>
+          </> : <>
+            {/*<MyMap 
+              posts={filteredLocations} 
+              selected={selectedLocationId} 
+              handleSelectedLocation={(id)=>setSelectedLocation(id)} />   
+          */}</>}
         </div>
   
         <div className="page_section_right">
@@ -162,19 +183,28 @@ function UserView({
 
   function Header({refetchLocations,refetching}){
 
-    const { token, loadingUser } = useAuth();
+    const { token, loadingUser,  isUser, isStoreOwner, isGuest } = useAuth();
+
+    function getLinks(){
+
+    }
 
     return( 
-    <div className="header">
-      <span>
-      {loadingUser ? 
-        <>Athenticating....</> : 
-        <>Welcome {token && token?.username ? <>{token.username}</> : <>Guest</> }    
-      </>}
-      </span>
-      
-      <span> <button disabled={refetching} onClick={e=>refetchLocations()}>Refresh</button> </span>
-    </div>);
-  }
+      <div className="header">
+
+        <span>
+        
+        </span>
+
+        <span>
+        {loadingUser ? 
+          <>Athenticating....</> : 
+          <>Welcome {token && token?.username ? <>{token.username}</> : <>Guest</> }    
+        </>}
+        </span>
+        
+        <span> <button disabled={refetching} onClick={e=>refetchLocations()}>Refresh</button> </span>
+      </div>);
+    }
   
   export default UserView;
