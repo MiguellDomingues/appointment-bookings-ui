@@ -2,11 +2,25 @@ import {useState, useEffect, useMemo } from 'react'
 
 import UserView from './components/UserView'
 
+
+
 import { AuthProvider} from './AuthProvider'
-import { AppContextProvider} from './AppContextProvider'
+import { AppContextProvider } from './AppContextProvider'
+
+import GuestLayout from './layouts/GuestLayout'
+
+import UserLayout from './layouts/UserLayout'
+import StoreOwnerLayout from './layouts/StoreOwnerLayout'
+
+
 import UserViewTabList from './components/UserViewTabList'
 
 import './styles.css';
+
+const AuthUserTypes = Object.freeze({
+  User: "USER",
+  StoreOwner: "STOREOWNER"
+});
 
 const accounts = [
 
@@ -80,7 +94,33 @@ function App() {
   }
  }
 
-const isPageSelected = (index) => index === selectedPage 
+ function getLayout(userType){
+
+  switch(userType){
+    case AuthUserTypes.User: 
+      return <>
+        <AppContextProvider>
+            <UserLayout/>
+        </AppContextProvider>
+    </> 
+    case AuthUserTypes.StoreOwner: 
+      return <>
+        <AppContextProvider>
+            <StoreOwnerLayout/>
+        </AppContextProvider>
+    </>
+    default: 
+      return <>
+        <AppContextProvider>
+          <GuestLayout />
+       </AppContextProvider>
+    </>
+    }
+ }
+
+const isPageSelected = (index) => index === selectedPage
+
+ //console.log("///////////////////////accounts:////////////////////////", users)
 
   return (<>
         <UserViewTabList 
@@ -95,14 +135,15 @@ const isPageSelected = (index) => index === selectedPage
               onLogInSuccess={handleUserLoginSuccess(idx)}
               onLogInError={handleUserLoginError(idx)}
               onLogInFinally={handleUserLoginFinally(idx)}>           
-                <AppContextProvider>
+                
                   <div className={isPageSelected(idx) ? "show_view page_wrapper" : "hide_view page_wrapper"}>                      
-                      <UserView/>                             
+                      {getLayout(account.type)}                           
                   </div>
-                </AppContextProvider>
+                
             </AuthProvider>
           )}
       </>);
 }
 
 export default App;
+

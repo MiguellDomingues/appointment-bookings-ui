@@ -1,6 +1,10 @@
 import { useAuth, useConfig} from './AuthProvider'
 import { useState } from 'react'
 
+const MAPS_API_KEY = `AIzaSyDqveqKgLlKG9gO1NCrs-iHmSjx10TUTkE`
+
+const MAPS_ENDPOINT = `https://maps.googleapis.com/maps/api/geocode/json`
+
 async function fetchWrapper(url, options){
     return new Promise( (resolve, reject) => { 
       fetch(url, options)
@@ -24,26 +28,38 @@ function useAPI(){
     const appointments_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_APPOINTMENT}` : ''
 
     function APIWrapper(CB, params, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){
+
+        if(!config){
+          console.log("no callout performed as no config is loaded")
+          return;
+        }
+
         setLoading(true)        //always set loading when callout begins
         params = Object.keys(params).map(e=>params[e])
-        CB(...params).then((result)=>{
-            //setError(false)     //successfull callouts will clear the previous err
-            successCB(result)
-        }).catch((err)=>{
-            console.log("ERROR: ", err)
-            //setError(true)      
-            errorCB(err)
-        }).finally(()=>{
-            setLoading(false)  //always unset loading when callout ends
-            finallyCB()
-        })
+
+        setTimeout(async ()=>{   
+          CB(...params).then((result)=>{
+              //setError(false)     //successfull callouts will clear the previous err
+              successCB(result)
+          }).catch((err)=>{
+              console.log("ERROR: ", err)
+              //setError(true)      
+              errorCB(err)
+          }).finally(()=>{
+              setLoading(false)  //always unset loading when callout ends
+              finallyCB()
+          })
+
+      }, getRandom(1000, 3000))  
     }
   
     const fetchGuestLocations = async () => fetchWrapper(locations_path, null)
 
-    const fetchUserLocations = async (key) => fetchWrapper(`${locations_path}?key=${key}`, null)
+   // const fetchUserLocations = async (key) => fetchWrapper(`${locations_path}?key=${key}`, null)
 
-    const fetchLocationsStoreOwner = async (key) => fetchWrapper(`${locations_path}?key=${key}`, null)
+   // const fetchLocationsStoreOwner = async (key) => fetchWrapper(`${locations_path}?key=${key}`, null)
+
+    const fetchAuthLocations = async (key) => fetchWrapper(`${locations_path}?key=${key}`, null)
     
     const postLocation = async (location) => 
         fetchWrapper(`${locations_path}?key=${token?.key}`,  {
@@ -129,6 +145,12 @@ function useAPI(){
         'Content-Type': 'application/json'
     }})
 
+    const fetchMapInfo = async (streetNumber,city,province,country,postalCode) => 
+      fetchWrapper(`${MAPS_ENDPOINT}?key=${MAPS_API_KEY}&address=${streetNumber}%20${city}%20${province}%20${country}%20${postalCode}`, {})
+
+
+
+    /*
     function fetchLocations(){
         if(!config){
             return new Promise( reject => reject("") )
@@ -142,12 +164,15 @@ function useAPI(){
             return fetchGuestLocations()
         }
     }
-
+*/
     
     return{
+        fetchMapInfo:           (params={}, ...args )=>APIWrapper(fetchMapInfo , params, ...args),
+        fetchAuthLocations:     (params={}, ...args )=>APIWrapper(fetchAuthLocations , {key: token.key}, ...args),
+        fetchGuestLocations:    (params={}, ...args )=>APIWrapper(fetchGuestLocations , params, ...args),
         loading,
         deleteAppointment:      (params={}, ...args )=>APIWrapper(deleteAppointment , params, ...args),
-        fetchLocations         ,
+        //fetchLocations         ,
         deleteLocation:         (params={}, ...args )=>APIWrapper(deleteLocation , params, ...args),
         editLocation:           (params={}, ...args )=>APIWrapper(editLocation , params, ...args),
         postAppointment:        (params={}, ...args )=>APIWrapper(postAppointment, params, ...args),
@@ -158,25 +183,3 @@ function useAPI(){
 }
 
 export default useAPI
-
-/*
- const fetchClientConfigs = () => {
-
-        return new Promise( (resolve, reject) => {
-      
-          fetch(ENDPOINT_URL_CONFIGS)
-          .then((res) => res.json())
-          .then((data) => {
-            data.success = true
-           // console.log("fetch config: ", data)
-            return resolve(data);
-          })
-          .catch((error) => {
-           // console.log('Error fetching configs', error)
-            return reject(GET_CONFIGS_FAILURE);
-            //
-          });
-        });
-      }
-      
-*/
