@@ -26,9 +26,10 @@ const appointmentForm = {
 function AppointmentList({
   appointments = [],
   icons = [], 
+  loading = false
 }){
 
-    const { isUser } = useAuth();   
+    const { isUser,loadingConfigs,loadingUser } = useAuth();   
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
     //useEffect(()=>{
@@ -42,7 +43,12 @@ function AppointmentList({
 
    // console.log("selected apt:", selectedAppointmentId)
  
-    return(<>  
+    return(<>
+
+        <LoadingOverlay 
+            isLoading={loading && !loadingConfigs && !loadingUser} 
+            isFullscreen={false}
+            loadingText={"Loading Data"}/>  
 
         {isUser() ? // users can see a button for appointment creations
             <>

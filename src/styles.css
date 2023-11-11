@@ -266,7 +266,7 @@
 }
 
 .calendar_wrapper{
-  width: 100%;
+  min-width: 100%;
 }
 
 .date_slot{
@@ -310,6 +310,10 @@
   display: flex;
   flex-direction: row;
   gap: 0.125rem;
+}
+
+.padding_top_edit_location{
+  padding-top: 2rem;
 }
 
 /*override yellow background on todays date panel*/

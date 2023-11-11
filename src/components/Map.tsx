@@ -32,7 +32,11 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
       const MyMap = ( { 
         posts, 
         selected, 
-        handleSelectedLocation }) => {
+        handleSelectedLocation,
+        startZoom = 4,
+        centerLat = 45.91961776025469,
+        centerLng = -0.7844604492
+       }) => {
 
 
 
@@ -45,12 +49,23 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
 
        const markers = posts || [];
 
-       const [zoom, setZoom] = React.useState(4); // initial zoom
 
-      const [center, setCenter] = React.useState<google.maps.LatLngLiteral>({
-          lat: 45.91961776025469,
-          lng: -0.7844604492,
-        });
+       const [zoom, setZoom] = React.useState(startZoom); // initial zoom
+      
+       const [center, setCenter] = React.useState<google.maps.LatLngLiteral>({
+        lat: centerLat, //49.1277492,//
+        lng: centerLng, //-122.8384156 //
+      });
+       //console.log("map zoom:", zoom)
+
+       
+       React.useEffect(()=>{setZoom(startZoom)}, [startZoom])
+
+       React.useEffect(()=>{
+        setCenter({lat:centerLat, lng: centerLng})
+      }, [centerLat,centerLng])
+
+      
         
         const onMarkerClick = (iw: google.maps.InfoWindow, e: google.maps.MapMouseEvent, id: Number) => {
 

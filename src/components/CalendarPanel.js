@@ -1,12 +1,12 @@
 import Calendar from 'react-calendar';
 
-import { useAuth,} from '../AuthProvider'
-
-import {useState, useMemo } from 'react'
+import {useState, useMemo, useEffect } from 'react'
 
 import {IconList} from './IconList'
 
 import {useAppContext} from '../AppContextProvider'
+import 'react-calendar/dist/Calendar.css';
+import '../styles.css';
 
 const appointmentsByDMY = {
     "2023-11-6": [
@@ -64,14 +64,17 @@ function CalendarPanel({
     appointments = []
 }){
 
-    //const {  isUser, isStoreOwner } = useAuth();
-
     const {  selectedCalendarDayAppointments } = useAppContext();
 
     const groupedAppointments = useMemo(() => groupAppointmentsByDate(appointments), [appointments]);
 
     const [selectedDay, setSelectedDay] = useState(new Date());
 
+    useEffect(()=>{
+        selectedCalendarDayAppointments(groupedAppointments[dateToYYYYMMDDString(selectedDay)])
+    }, [])
+
+    //convert react-calendar date to a YYYY-MM-DD string
     const dateToYYYYMMDDString = (date) => (date.toISOString().split('T')[0] )
 
     function handleSelectDay(date){
