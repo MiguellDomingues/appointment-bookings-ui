@@ -33,40 +33,37 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
         posts, 
         selected, 
         handleSelectedLocation,
-        startZoom = 4,
-        centerLat = 45.91961776025469,
-        centerLng = -0.7844604492
+        startZoom = 14,
        }) => {
 
+      const markers = posts || [];
 
-
-        console.log("Map start:" , posts, selected)
-
-       // const { 
-        //  data, 
-        //  selected, 
-        //  handleSelectedLocation } = props?.context
-
-       const markers = posts || [];
-
-
-       const [zoom, setZoom] = React.useState(startZoom); // initial zoom
-      
-       const [center, setCenter] = React.useState<google.maps.LatLngLiteral>({
-        lat: centerLat, //49.1277492,//
-        lng: centerLng, //-122.8384156 //
-      });
-       //console.log("map zoom:", zoom)
-
-       
+      const [zoom, setZoom] = React.useState(startZoom); // initial zoom
+    
+      //console.log("Map start:" , posts, selected)
+       const [center, setCenter] = React.useState<google.maps.LatLngLiteral>(()=> calcStartingCenter(posts));
+    
        React.useEffect(()=>{setZoom(startZoom)}, [startZoom])
 
-       React.useEffect(()=>{
-        setCenter({lat:centerLat, lng: centerLng})
-      }, [centerLat,centerLng])
+       React.useEffect(()=>{setCenter(calcStartingCenter(posts))}, [posts])
 
-      
-        
+       //find the center point of a list of locations by adding up all the lat/lngs and dividing by the
+       //num of locations   
+       function calcStartingCenter(locations = []){
+
+        if(locations.length === 0) return {lat: 0.0, lng: 0.0}
+
+        let LatSum = 0.0
+        let LngSum = 0.0
+
+        locations.forEach(({LatLng})=>{
+           LatSum = LatSum + LatLng.lat
+           LngSum = LngSum + LatLng.lng
+         })
+
+         return {lat: LatSum/(locations.length), lng: LngSum/(locations.length) }
+       }
+
         const onMarkerClick = (iw: google.maps.InfoWindow, e: google.maps.MapMouseEvent, id: Number) => {
 
          // console.log("onmarkerclick: ", iw, e, id)
@@ -164,7 +161,7 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
                     position={data.LatLng}
                     title={"marker title"} 
                     label={i.toString()}
-                    content={data.info}
+                    content={data.title}
                     onClick={onMarkerClick}              
                   />
                 ))}
