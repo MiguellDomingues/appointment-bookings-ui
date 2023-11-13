@@ -1,13 +1,16 @@
 
 import LocationList from './LocationList'
 import AppointmentList from './AppointmentList'
+import Availability from './Availability'
+
 import {useAppContext} from '../AppContextProvider'
 
-import {useState } from 'react'
+import {useState, useEffect } from 'react'
 
 export const BodyPanelState = Object.freeze({
     Location: "Location",
     Appointment: "Appointment",
+    Availability: "Availability"
 });
 
 export function BodyPanel({
@@ -16,16 +19,20 @@ export function BodyPanel({
     appointments = [],
     icons = [],
     loading = false,
+    isToggleable = null
   }){
   
-    const [ mode, setMode ] = useState(startingMode);
-   console.log("bps: ", mode, filteredLocations,  appointments, icons, loading)
+  const [ mode, setMode ] = useState(startingMode);
+  //console.log("bps: ", mode, filteredLocations,  appointments, icons, loading)
   
-  //useEffect( () => {console.log("//////////////////////////////////init////////////////////////////////////////")}, []);//
+   useEffect( () => setMode(startingMode), [startingMode]);//
   
-  const context = useAppContext();
+    const context = useAppContext();
   
     context.handleManageAppointments = () =>setMode(BodyPanelState.Appointment)
+    context.handleConfigureAvailability = () =>setMode(BodyPanelState.Availability)
+
+
   
     function getBodyUI(selectedMode){    
   
@@ -39,10 +46,17 @@ export function BodyPanel({
           case BodyPanelState.Appointment:
               return <>
                   <div className="body_panel body_appointments">
-                    <button onClick={e=>setMode(BodyPanelState.Location)} className="cancel_new_appointment_btn">X</button>
+                    { isToggleable ? <button onClick={e=>setMode(startingMode)} className="cancel_panel_btn">X</button> : <></>}
                     <AppointmentList {...{appointments, icons} } loading={loading}/> 
                   </div>
               </>
+           case BodyPanelState.Availability:
+            return <>
+                <div className="body_panel body_locations">
+                  { isToggleable ? <button onClick={e=>setMode(startingMode)} className="cancel_panel_btn">X</button> : <></>}
+                  <Availability/>
+                </div>
+            </>
           default: return <></>
       }
     }

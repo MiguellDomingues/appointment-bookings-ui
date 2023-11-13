@@ -13,6 +13,8 @@ const Icons = Object.freeze({
     FaCarBattery: <FaCarBattery/>,
 });
 
+export const getIconByKey = (iconName) => Icons[iconName]
+
 export const getIcons = () => Object.keys(Icons)
 
 export function IconList({
