@@ -289,7 +289,7 @@ function AppointmentForm({
         </div>
 
         <form className="form_card" onSubmit={handleSubmit}>
-          <button onClick={e=>cancelForm()} className="cancel_new_appointment_btn">X</button>
+          <button onClick={e=>cancelForm()} className="cancel_panel_btn">X</button>
 
           <div className="form_row">
             date 

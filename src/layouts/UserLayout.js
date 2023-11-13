@@ -96,6 +96,7 @@ function UserLayout({
                     startingMode={BodyPanelState.Location}
                     filteredLocations={filteredLocations}
                     appointments={appointments}
+                    isToggleable={true}
                     icons={icons}
                     loading={loading}/>
               </>} 
@@ -105,6 +106,8 @@ function UserLayout({
     }
 
     const { leftPanel, rightPanel } = getPageUI(mode)
+
+     // console.log("user: ", filteredLocations)
 
     return (<>     
 

@@ -134,7 +134,7 @@
   border: 1px solid #000000;
 }
 
-.cancel_new_appointment_btn{
+.cancel_panel_btn{
   position: absolute;
   top: 0;
   right: 0;
@@ -320,6 +320,25 @@
 .reeact-calendar__tile--now {
   background: white;
 }
+
+.table_row {
+  text-align: center;
+}
+
+.table_border {
+  box-sizing: border-box;
+  border: 1px solid #dddddd;
+}
+
+.table_container {
+  display: contents;
+}
+
+.table_title {
+  font-size: x-large;
+}
+
+
 
 
 

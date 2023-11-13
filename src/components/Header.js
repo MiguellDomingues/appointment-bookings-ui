@@ -12,8 +12,8 @@ const { token, loadingUser,  isUser, isStoreOwner, isGuest } = useAuth();
 function getLinks(){
     if(isStoreOwner()){
     return <>
-        <span onClick={handleSetMapPage}>Locations</span>
-        <span onClick={handleSetCalendarPage}>Appointments</span>
+        <span onClick={handleSetMapPage}>My Location</span>
+        <span onClick={handleSetCalendarPage}>My Appointments</span>
     </>
     }else{
     return <><span onClick={handleSetMapPage}>Locations</span></>

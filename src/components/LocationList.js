@@ -22,7 +22,8 @@ const LocationPanelState = Object.freeze({
     Card: "Card",
     Edit: "Edit",
     New: "New",
-    AddButton: "AddButton"
+    AddButton: "AddButton",
+   
 });
 
 
@@ -155,7 +156,7 @@ function LocationCard({
 
     const {loading, deleteLocation } = useAPI();
 
-    const { handleManageAppointments, refetchLocations} = useAppContext();
+    const { handleManageAppointments,handleConfigureAvailability, refetchLocations} = useAppContext();
 
     //const handleDeleteLocation = (id) => deleteLocation({id}, ()=>refetchLocations())
 
@@ -216,7 +217,8 @@ function LocationCard({
                 <div className="location_card_btns">  
                     { isStoreOwner() ? <>
                         {/*<button onClick={e=>handleDeleteLocation(id)} className="">Delete</button>*/}
-                        <button onClick={e=>handleSetEdit()} className="">Edit</button>
+                        <button onClick={handleSetEdit} className="">Edit</button>
+                        <button onClick={handleConfigureAvailability} className="">Configure Availability</button>
                         {/*<button onClick={e=>handleManageAppointments()} className="">Manage Appointments</button>*/}
                     </> 
                     : isUser() ? <>
@@ -254,11 +256,12 @@ function LocationForm({
 
     async function handleCheckMap(){
 
-        const streetNumber = "132 13880 70th ave"
+        const streetNumber = "7423 King George Blvd"
         const city = "surrey"
         const province = "british columbia"
         const country = "canada"
-        const postalCode = "v3wt3"
+        const postalCode = "V3W 0R8"
+        //const title = "My Title"
 
 
         fetchMapInfo({
@@ -307,7 +310,7 @@ function LocationForm({
         </div>
 
         <form onSubmit={handleSubmit}>
-            <button onClick={handleCancelForm} className="cancel_new_appointment_btn">X</button>
+            <button onClick={handleCancelForm} className="cancel_panel_btn">X</button>
 
             <div className="form_row card_padding padding_top_edit_location">
                 <div>title</div>
@@ -316,10 +319,18 @@ function LocationForm({
                     </div>
             </div>
 
+            
+            <div className="form_row card_padding">
+                <div>info</div>
+                    <div>
+                    <input name="info" value={formFields.info.trim()} className="appointment_form_input" onChange={handleChange}  />  
+                    </div>
+            </div>
+
             <div className="form_row card_padding">
                 <div>street address</div>
                 <div>
-                    <input name="address" value={formFields.address.trim()} className="appointment_form_input" onChange={handleChange}  />  
+                    <input name="street" value={formFields.address.trim()} className="appointment_form_input" onChange={handleChange}  />  
                 </div>
             </div>
 
@@ -365,17 +376,10 @@ function LocationForm({
                     </div>
             </div>
 
-            <div className="form_row card_padding">
-                <div>info</div>
-                    <div>
-                    <input name="info" value={formFields.info.trim()} className="appointment_form_input" onChange={handleChange}  />  
-                    </div>
-            </div>
-
             <input type="submit" value="Confirm" disabled={areFieldsInvalid()}/>
             
         </form> 
-        <button onClick={e=>handleCheckMap()}>Check Map</button>
+        <button disabled={loading} onClick={e=>handleCheckMap()}>Map Preview</button>
     </>)
 }
 

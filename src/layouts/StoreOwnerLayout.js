@@ -4,7 +4,7 @@ import {useState, useEffect, useMemo } from 'react'
 import { MemoryRouter, Route, Routes, Navigate,Link } from "react-router";
 
 
-
+import BodyPanel from '../components/BodyPanel'
 import LocationList from '../components/LocationList'
 import AppointmentList from '../components/AppointmentList'
 import CalendarPanel from '../components/CalendarPanel'
@@ -109,22 +109,6 @@ function StoreOwnerLayout({
     
     }
 
-    function getSelectedLocationAppointmentsIcons(locations = [], selected_location_id = null){
-  
-      const selected_location = locations.find(({id})=>id === selected_location_id)
-  
-      if(!selected_location){ //if no location was found, return empty list
-        return {};
-      }
-      return { appointments: selected_location.appointments, icons: selected_location.icons}
-    }
-
-    //const filteredLocations = data// filterLocationsBySelectedIcons(data,selectedIcons)
- 
-    let { appointments, icons } =  getSelectedLocationAppointmentsIcons([data], selectedLocationId);
-
-
-
 
     function getPageUI(selectedMode){
       
@@ -146,18 +130,15 @@ function StoreOwnerLayout({
                     centerLng :mapPreviewProps.LatLng.lng,
                     handleSelectedLocation: ()=>{}
                 }
-
-
-               
+         
             }else{
 
                 mapProps = {
-                    posts: [{...data}] ,
+                    posts: data.LatLng ? [{...data}] : [], 
                     startZoom: 17 ,
                     selected: selectedLocationId ,
                     handleSelectedLocation: (id)=>setSelectedLocation(id)
-                }
-             
+                }         
             }
 
             console.log("mapProps", mapProps)
@@ -167,34 +148,36 @@ function StoreOwnerLayout({
                 <MyMap  {...{...mapProps}}/> 
               </>,
               rightPanel: <>
-                <div className="body_panel body_locations">
-                  <LocationList locations={[{...data}]} loading={loading}/>        
-                </div>
+                <BodyPanel 
+                    startingMode={BodyPanelState.Location}
+                    filteredLocations={[{...data}]}
+                    isToggleable={true}
+                    loading={loading}/>
               </>} 
           }   
           case PageState.Calendar:{
 
-              appointments = selectedAppointments
+             // appointments = selectedAppointments
 
             return {
               leftPanel:<>
                 <CalendarPanel appointments={data?.appointments ? data.appointments : []}/>
               </>,
               rightPanel:<>
-                 {<div className="body_panel body_appointments">
-                    <AppointmentList {...{appointments, icons }} loading={loading}/> 
-                </div>}         
+                    <BodyPanel 
+                        startingMode={BodyPanelState.Appointment}
+                        appointments={selectedAppointments}
+                        icons={data.icons}
+                        loading={loading}/>
               </>}  
           }  
           default: return <></>
       }
     }
 
-    /*
-
-    */
-
     const { leftPanel, rightPanel } = getPageUI(mode)
+
+    //console.log("storeowner: ", data)
 
     return (<>     
 
