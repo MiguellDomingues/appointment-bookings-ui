@@ -338,6 +338,9 @@
   font-size: x-large;
 }
 
+.selected_item{
+  background-color: aqua;
+}
 
 
 
