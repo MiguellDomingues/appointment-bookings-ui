@@ -30,8 +30,7 @@ export function BodyPanel({
     const context = useAppContext();
   
     context.handleManageAppointments = () =>setMode(BodyPanelState.Appointment)
-    context.handleConfigureAvailability = () =>setMode(BodyPanelState.Availability)
-
+    
 
   
     function getBodyUI(selectedMode){    
@@ -50,13 +49,7 @@ export function BodyPanel({
                     <AppointmentList {...{appointments, icons} } loading={loading}/> 
                   </div>
               </>
-           case BodyPanelState.Availability:
-            return <>
-                <div className="body_panel body_locations">
-                  { isToggleable ? <button onClick={e=>setMode(startingMode)} className="cancel_panel_btn">X</button> : <></>}
-                  <Availability/>
-                </div>
-            </>
+           
           default: return <></>
       }
     }

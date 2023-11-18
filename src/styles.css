@@ -342,6 +342,29 @@
   background-color: aqua;
 }
 
+/*hacky solution to:
+- reduce the spacing for "closed" time intervals across days
+- make it so multiple breaks can occupy the same timeslot 
+  without the automatic offset
+*/
+
+.RBC_events_override{
+  width: 105% !important;
+  left: 0% !important;
+  border: none !important;
+}
+
+
+.RBC_close_interval_override{
+  background-color: aliceblue !important;
+}
+
+.RBC_break_interval_override{
+  background-color: red !important;
+}
+
+
+
 
 
 

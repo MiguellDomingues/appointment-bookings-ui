@@ -1,16 +1,8 @@
 import { ActionButton }   from './widgets'
 import { useToggleUI } from '../hooks/useToggleUI'
-import { useState } from 'react'
 import { getIconByKey }   from './IconList'
 
-function ServiceDurationList({serviceDurations}){
-
-    const [_serviceDurations, setServiceDurations] = useState([...serviceDurations])
-
-    function updateServiceDuration(id, duration){
-        _serviceDurations[id].duration = duration
-        setServiceDurations((_serviceDurations)=>[ ..._serviceDurations ])
-    }
+function ServiceDurationList({serviceDurations,updateServiceDuration}){
 
     return(<>
          <table className="table_border">
@@ -22,7 +14,7 @@ function ServiceDurationList({serviceDurations}){
                     <th>Action</th>
                 </tr>
                 
-                {_serviceDurations.map(({type, duration}, idx)=>
+                {serviceDurations.map(({type, duration}, idx)=>
                     <ServiceDuration 
                         key={idx} 
                         id={idx} duration

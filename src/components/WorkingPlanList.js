@@ -1,15 +1,9 @@
 
 import { ActionButton }   from './widgets'
 import { useToggleUI } from '../hooks/useToggleUI'
-import { useState } from 'react'
 
-function WorkingPlanList({operatingHours}){
 
-    const [workingPlan, setWorkingPlan] = useState([...operatingHours])
-
-    function updateWorkingPlanDay(day, start, end){
-        setWorkingPlan((workingPlan)=>[ ...workingPlan.map((wp)=>wp.day===day ? {day, start, end} : wp)  ])
-    }
+function WorkingPlanList({workingPlan,updateWorkingPlanDay}){
 
     return(<> 
         <table className="table_border">

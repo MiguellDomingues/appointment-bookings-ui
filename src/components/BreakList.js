@@ -1,10 +1,6 @@
 
 import { ActionButton,SelectableItemsList }   from './widgets'
 import { useToggleUI,ToggleUIState } from '../hooks/useToggleUI'
-import { useState } from 'react'
-
-import { nanoid } from 'nanoid'
-
 
 /*
 const _abbreviatedDays = Object.freeze({
@@ -28,17 +24,7 @@ const abbreviatedDays = Object.freeze({
   });
 
 
-function BreakList({breaks}){
-
-    const [workingBreaks, setWorkingBreaks] = useState([...breaks])
-
-    function deleteWorkingBreak(id){
-        setWorkingBreaks((workingBreaks)=>[...(workingBreaks.filter(wb=>wb.id!==id) )])
-     }
-
-     function addWorkingBreak(days, start, end){
-        setWorkingBreaks((workingBreaks)=>[ ...workingBreaks, {days, start, end, id: nanoid()}])
-     }
+function BreakList({breaks,deleteWorkingBreak,addWorkingBreak}){
 
     return(<>
          <table className="table_border">
@@ -50,7 +36,7 @@ function BreakList({breaks}){
                     <th>End</th>
                     <th>Action</th>
                 </tr>          
-                {workingBreaks.map(({days, start, end, id}, idx)=>
+                {breaks.map(({days, start, end, id}, idx)=>
                     <Break key={id} {...{days, start, end, id,  deleteWorkingBreak, addWorkingBreak}}/>)}
                 <Break startingState={ToggleUIState.Edit} {...{addWorkingBreak}}/>
             </tbody>
