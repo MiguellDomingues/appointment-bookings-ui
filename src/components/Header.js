@@ -3,8 +3,9 @@ import { useAuth } from '../AuthProvider'
 function Header({
 refetchLocations,
 refetching,
-handleSetMapPage,
-handleSetCalendarPage
+handleSetMapPage = ()=>{},
+handleSetCalendarPage = ()=>{},
+handleSetAvailabilityPage = ()=>{},
 }){
 
 const { token, loadingUser,  isUser, isStoreOwner, isGuest } = useAuth();
@@ -14,6 +15,7 @@ function getLinks(){
     return <>
         <span onClick={handleSetMapPage}>My Location</span>
         <span onClick={handleSetCalendarPage}>My Appointments</span>
+        <span onClick={handleSetAvailabilityPage}>My Availability</span>
     </>
     }else{
     return <><span onClick={handleSetMapPage}>Locations</span></>

@@ -218,7 +218,7 @@ function LocationCard({
                     { isStoreOwner() ? <>
                         {/*<button onClick={e=>handleDeleteLocation(id)} className="">Delete</button>*/}
                         <button onClick={handleSetEdit} className="">Edit</button>
-                        <button onClick={handleConfigureAvailability} className="">Configure Availability</button>
+                        {/*<button onClick={handleConfigureAvailability} className="">Configure Availability</button>*/}
                         {/*<button onClick={e=>handleManageAppointments()} className="">Manage Appointments</button>*/}
                     </> 
                     : isUser() ? <>
