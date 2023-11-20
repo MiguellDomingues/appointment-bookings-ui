@@ -8,127 +8,83 @@ import {useAppContext} from '../AppContextProvider'
 import 'react-calendar/dist/Calendar.css';
 import '../styles.css';
 
-const appointmentsByDMY = {
-    "2023-11-6": [
-        {
-            locationId: "abc",
-            apointee: "peter",
-            types: ['FaWrench', 'FaCarBattery', "FaOilCan","MdLocalCarWash"],
-            start: "10:30",
-            end:   "11:30"
-        },
-        {
-            locationId: "def",
-            apointee: "tom",
-            types: ["MdLocalCarWash"],
-            start: "8:00",
-            end:   "9:00"
-        },
-        {
-            locationId: "ghi",
-            apointee: "jon",
-            types: ['FaCarBattery', "FaOilCan"],
-            start: "13:45",
-            end:   "14:45"
-        },
-    ],
-    "2023-11-7": [
-        {
-            locationId: "jkl",
-            apointee: "peter",
-            types: ['FaWrench', 'FaCarBattery', "FaOilCan","MdLocalCarWash"],
-            start: "11:15",
-            end:   "12:00"
-        },
-        {
-            locationId: "mno",
-            apointee: "tom",
-            types: ["MdLocalCarWash","GiMechanicGarage","FaCarBattery"],
-            start: "14:00",
-            end:   "15:00"
-        },
-    ],
-    "2023-11-8":  [
-        {
-            locationId: "pqr",
-            apointee: "thomas",
-            types: ['FaWrench', 'FaCarBattery', "MdLocalCarWash"],
-            start: "15:25",
-            end:   "16:14"
-        },
-    ],
+//convert react-calendar date to a YYYY-MM-DD string
+const dateToYYYYMMDDString = (date) => (date.toISOString().split('T')[0] )
 
+ /*
+    - group a list of appointments by date
+    - each appointment is a deep-copy
+    input:  [{date: a}, {date: b}, {date: c}, {date: a}]
+    output: {"a": [{...},{...}], "b": {...}, "c": [{...}]}
+*/
+function groupAppointmentsByDate(appointments){
+
+    console.log("RECALC ")
+
+    /*
+        - sort the appointment start times on each date key by earliest->latest
+        input:  {"a": [{start: "12:10"},{start: "6:10"}], "b": [{start: "6:10"}], }
+        output: {"a": [{start: "6:10"},{start: "12:10"}], "b": [{start: "6:10"}], }
+    */
+    function sortGroupedAppointmentsByEarliestStart(groupedAppointments){
+
+        //input:  a string representing the hours/minutes time between 0:0 and 23:59 inclusive
+        //output: an int representation of the hours/minutes time between 0 and 2359 inclusive
+        const timeStringToInteger = (time_str) =>{
+            const split = time_str.split(":")
+            return parseInt(`${split[0]}${split[1]}`)
+        }
+
+        //sort each days appointments from earliest to latest start times
+        Object.keys(groupedAppointments).forEach(dateKey=>{
+            groupedAppointments[dateKey].sort((apt1,apt2)=>timeStringToInteger(apt1.start) - timeStringToInteger(apt2.start))
+        })
+
+        return groupedAppointments
+    }
+
+    const groupedAppointments = {};
+
+    appointments.forEach((appointment)=>{
+
+        if(!groupedAppointments[appointment.date]) 
+            groupedAppointments[appointment.date] = [];
+        
+        groupedAppointments[appointment.date].push({ //push a copy of the appointment
+            ...appointment, 
+            appointment_types: [...appointment.appointment_types] 
+            });
+    })
+
+    return sortGroupedAppointmentsByEarliestStart(groupedAppointments);
 }
 
 function CalendarPanel({
     appointments = []
 }){
 
-    const {  selectedCalendarDayAppointments } = useAppContext();
+    const {  selectCalendarDayAppointments } = useAppContext();
 
     const groupedAppointments = useMemo(() => groupAppointmentsByDate(appointments), [appointments]);
 
     const [selectedDay, setSelectedDay] = useState(new Date());
 
-    useEffect(()=>{
-        selectedCalendarDayAppointments(groupedAppointments[dateToYYYYMMDDString(selectedDay)])
+    useEffect(()=>{ //when app first renders, set the appointments to appear in right panel to todays appointments
+        selectCalendarDayAppointments(getGroupedAppointmentsByDate(selectedDay))
     }, [])
 
-    //convert react-calendar date to a YYYY-MM-DD string
-    const dateToYYYYMMDDString = (date) => (date.toISOString().split('T')[0] )
+    //when all appointments are updated from a refresh, refresh the calendarDayAppointments so the appointmentlist rerenders
+    useEffect(()=>{  
+        selectCalendarDayAppointments(getGroupedAppointmentsByDate(selectedDay))
+    }, [appointments])
+
 
     function handleSelectDay(date){
-        selectedCalendarDayAppointments(groupedAppointments[dateToYYYYMMDDString(date)])
+        selectCalendarDayAppointments(getGroupedAppointmentsByDate(date))
         setSelectedDay(date)
     }
 
-    /*
-        - group a list of appointments by date
-        - each appointment is a deep-copy
-        input:  [{date: a}, {date: b}, {date: c}, {date: a}]
-        output: {"a": [{...},{...}], "b": {...}, "c": [{...}]}
-    */
-    function groupAppointmentsByDate(appointments){
-
-        console.log("RECALC ")
-
-        /*
-            - sort the appointment start times on each date key by earliest->latest
-            input:  {"a": [{start: "12:10"},{start: "6:10"}], "b": [{start: "6:10"}], }
-            output: {"a": [{start: "6:10"},{start: "12:10"}], "b": [{start: "6:10"}], }
-        */
-        function sortGroupedAppointmentsByEarliestStart(groupedAppointments){
-
-            //input:  a string representing the hours/minutes time between 0:0 and 23:59 inclusive
-            //output: an int representation of the hours/minutes time between 0 and 2359 inclusive
-            const timeStringToInteger = (time_str) =>{
-                const split = time_str.split(":")
-                return parseInt(`${split[0]}${split[1]}`)
-            }
-    
-            //sort each days appointments from earliest to latest start times
-            Object.keys(groupedAppointments).forEach(dateKey=>{
-                groupedAppointments[dateKey].sort((apt1,apt2)=>timeStringToInteger(apt1.start) - timeStringToInteger(apt2.start))
-            })
-    
-            return groupedAppointments
-        }
-
-        const groupedAppointments = {};
-
-        appointments.forEach((appointment)=>{
-
-            if(!groupedAppointments[appointment.date]) 
-                groupedAppointments[appointment.date] = [];
-            
-            groupedAppointments[appointment.date].push({ //push a copy of the appointment
-                ...appointment, 
-                appointment_types: [...appointment.appointment_types] 
-             });
-        })
-
-        return sortGroupedAppointmentsByEarliestStart(groupedAppointments);
-    }
+    const getGroupedAppointmentsByDate = (date) => groupedAppointments[dateToYYYYMMDDString(date)]
 
     //the appointments on a calendar tile
     function tileAppointments({ date, view }) {
@@ -154,7 +110,7 @@ function CalendarPanel({
     }
 
    // console.log("static data", appointmentsByDMY)
-    console.log("calced data", groupedAppointments)
+   // console.log("calced data", groupedAppointments)
 
     return(<>
 
