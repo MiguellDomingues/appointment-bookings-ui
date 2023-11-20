@@ -1,6 +1,6 @@
 import '../styles.css';
 
-export const ActionButton = ({handler, text}) => <><button onClick={handler}>{text}</button></>
+export const ActionButton = ({handler, text, disabled}) => <><button disabled={disabled} onClick={handler}>{text}</button></>
 
 export const SelectableItemsList = ({items, selectedItems, handleItemClick, selectedClassName}) =>
     <>{items.map(item=>

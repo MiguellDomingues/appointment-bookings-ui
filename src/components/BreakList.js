@@ -13,6 +13,10 @@ const _abbreviatedDays = Object.freeze({
     Sunday: "Sun",
   });
 */
+
+//move this to a utils file
+const hourMinutestoTotalMinutes = timeString => parseInt(timeString.split(":")[0])*60 + parseInt(timeString.split(":")[1])
+
 const abbreviatedDays = Object.freeze({
     Mon: "Monday",
     Tue: "Tuesday",
@@ -67,6 +71,9 @@ function Break({
      }
  
     const editUI = ({days, start, end}) => {
+
+        const areTimesInvalid= () => hourMinutestoTotalMinutes(start) >= hourMinutestoTotalMinutes(end)
+
         return {
             daysCol:   <>
                 <SelectableItemsList 
@@ -78,7 +85,7 @@ function Break({
             startCol:   <><input type="time" name="start" value={start} onChange={handleChange}/></>,
             endCol:     <><input type="time" name="end" value={end} onChange={handleChange}/></>,
             actionCol:  <>
-                <ActionButton handler={handleSave} text="Save"/>
+                <ActionButton disabled={areTimesInvalid()} handler={handleSave} text="Save"/>
             </>,
         }
     }

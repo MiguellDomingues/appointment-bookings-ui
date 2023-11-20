@@ -1,4 +1,5 @@
 import { useAuth } from '../AuthProvider'
+import { useAppContext } from '../AppContextProvider'
 
 function Header({
 refetchLocations,
@@ -10,7 +11,13 @@ handleSetAvailabilityPage = ()=>{},
 
 const { token, loadingUser,  isUser, isStoreOwner, isGuest } = useAuth();
 
+const { refetchLocations: _refetchLocations, isRefetching, links } = useAppContext();
+
+//context.refetchLocations = () => getData()
+  //context.isRefetching = loading
+
 function getLinks(){
+
     if(isStoreOwner()){
     return <>
         <span onClick={handleSetMapPage}>My Location</span>
@@ -25,7 +32,8 @@ function getLinks(){
 return( 
     <div className="header">
 
-        {getLinks()}
+        {/*getLinks()*/}
+        {links?.map(({name, handler})=> <span onClick={handler}>{name}</span>)}
 
         <span>
         {loadingUser ? 
@@ -34,7 +42,7 @@ return(
         </>}
         </span>
         
-        <span> <button disabled={refetching} onClick={e=>refetchLocations()}>Refresh</button> </span>
+        <span> <button disabled={isRefetching} onClick={e=>_refetchLocations()}>Refresh</button> </span>
     </div>);
 }
 

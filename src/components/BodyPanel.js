@@ -1,7 +1,6 @@
 
 import LocationList from './LocationList'
 import AppointmentList from './AppointmentList'
-import Availability from './Availability'
 
 import {useAppContext} from '../AppContextProvider'
 

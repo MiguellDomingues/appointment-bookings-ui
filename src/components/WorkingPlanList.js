@@ -2,6 +2,9 @@
 import { ActionButton }   from './widgets'
 import { useToggleUI } from '../hooks/useToggleUI'
 
+//move this to a utils file; used inside Availability
+const hourMinutestoTotalMinutes = timeString => parseInt(timeString.split(":")[0])*60 + parseInt(timeString.split(":")[1])
+
 
 function WorkingPlanList({workingPlan,updateWorkingPlanDay}){
 
@@ -28,7 +31,7 @@ function WorkingPlanDay({
     day, 
     start, 
     end,
-    updateWorkingPlanDay
+    updateWorkingPlanDay,
 }){
 
     const readOnlyUI = ({start, end}) => ({
@@ -41,14 +44,20 @@ function WorkingPlanDay({
      })
     
 
-    const editUI = ({start, end}) => ({
-        startCol:   <><input type="time" name="start" value={start} onChange={handleChange}/></>,
-        endCol:     <><input type="time" name="end" value={end} onChange={handleChange}/></>,
-        actionCol:  <>
-            <ActionButton handler={handleSave} text="Save"/>
-            <ActionButton handler={handleCancel} text="X"/>
-        </>,
-    })
+    const editUI = ({start, end}) => {
+
+        //start times must be strictly less then end times
+        const areTimesInvalid= () => hourMinutestoTotalMinutes(start) >= hourMinutestoTotalMinutes(end)
+
+        return{
+            startCol:   <><input type="time" name="start" value={start}  onChange={handleChange}/></>,
+            endCol:     <><input type="time" name="end" value={end}  onChange={handleChange}/></>,
+            actionCol:  <>
+                <ActionButton handler={handleSave} disabled={areTimesInvalid()} text="Save"/>
+                <ActionButton handler={handleCancel} text="X"/>
+            </>,
+        }
+    }
 
    
       function handleChange(e){
