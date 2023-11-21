@@ -2,11 +2,18 @@ import {useState, useEffect } from 'react'
 
 import { useAuth, useConfig } from '../AuthProvider'
 
-import {IconList, getIcons}   from './IconList'
+import { ActionButton }   from './widgets'
+
+import { IconList, getIconByKey }   from './IconList'
 import {useAppContext}        from '../AppContextProvider'
 import LoadingOverlay         from './LoadingOverlay'
+
+
 import useIcons               from '../hooks/useIcons'
+import {useToggleUI,ToggleUIState }             from '../hooks/useToggleUI'
+
 import useAPI                 from '../useAPI'
+
 
 import '../styles.css';
 
@@ -16,307 +23,296 @@ const appointmentForm = {
     end_time: "",
   }
 
-  const AppointmentPanelState = Object.freeze({
-    Card: "Card",
-    EditStatus: "EditStatus",
-    New: "New",
-    AddButton: "AddButton",
-});
-
 function AppointmentList({
   appointments = [],
   icons = [], 
   loading = false
 }){
 
-    const { isUser,loadingConfigs,loadingUser } = useAuth();   
+    const { isUser,loadingConfigs,loadingUser, isStoreOwner } = useAuth();   
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-
-    //useEffect(()=>{
-     // setSelectedAppointmentId(null)
-    //}, [selectedLocationId]) // when user selects a new location, close new appointment panel and clear the selected appointment
-  
+ 
     const context = useAppContext()
 
     context.selectedAppointmentId = selectedAppointmentId;
     context.setSelectedAppointmentId = (id)=> setSelectedAppointmentId(id)
 
-   // console.log("selected apt:", selectedAppointmentId)
- 
+   // console.log("al apts ", appointments)
+   // console.log("test apts ", context.testapts)
+
+    //const [apts, setApts] = useState([...appointments]);
+
+
     return(<>
+        <div className="body_appointments">
 
         <LoadingOverlay 
             isLoading={loading && !loadingConfigs && !loadingUser} 
             isFullscreen={false}
             loadingText={"Loading Data"}/>  
 
-        {isUser() ? // users can see a button for appointment creations
-            <>
-              <AppointmentPanel
-                {...{icons}}
-                startingMode = {AppointmentPanelState.AddButton}/>
-            </>  : <></>}
+        {isStoreOwner() ? <>
 
+          <table className="table_border table_width">
+          <caption className="table_title">Appointments on {appointments[0]?.date}</caption>
+          <tbody>
+            <tr>    
+              <th>Customer Name</th>
+              <th>Type</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr> 
 
-        {appointments.map((appointment, idx)=>  
-            <AppointmentPanel 
-                key={idx} 
-                {...{appointment,icons}} 
-                startingMode = {AppointmentPanelState.Card}
-                isAppointmentSelected = {appointment.id === selectedAppointmentId}/>)}
+            {appointments.map(({id, appointee,appointment_types,date,start,end,status})=>
+               <StoreOwnerAppointment key={id} {...{appointee,appointment_types,date,start,end,status, id}}/>
+            )}
+
+          </tbody>
+      </table> 
+        
+        </>: <>
+        
+        <table className="table_border table_width">
+          <caption className="table_title">Appointments at some place</caption>
+          <tbody>
+            <tr>    
+              <th>Type</th>
+              <th>Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr> 
+
+            {appointments.map(({id, appointment_types,date,start,end,status})=>
+               <UserAppointment key={id} {...{appointment_types,date,start,end,status,id, icons}}/>
+            )}
+
+            <UserAppointment icons={icons} startingState={ToggleUIState.Edit}/>
+
+          </tbody>
+      </table> 
 
         
+        
+        </>}
+       
+        </div>
 
-    </>);
-  }
-
-  function AppointmentPanel({ 
-    appointment = {},
-    icons = [], 
-    startingMode = AppointmentPanelState.Card,
-    isAppointmentSelected = false,
-  }){
-
-    const [ mode, setMode ] = useState( startingMode )
-
-    const { loading, postAppointment, editAppointmentStatus } = useAPI()
-
-
-    function handlePostAppointment(formFields){
-  
-      const new_appointment = {
-        loc_id: selectedLocationId ,
-        ...formFields
-      }
-  
-      postAppointment({new_appointment},
-        (result)=>{
-          refetchLocations();
-        },
-        undefined,
-        _=>setMode(AppointmentPanelState.AddButton),
-      )
-
-    }
-  
-    function handleEditAppointmentStatus(new_appointment){
-
-        const apt_id = new_appointment.id;
-        const new_status = new_appointment.status;
-
-      editAppointmentStatus({apt_id, new_status},
-        (result)=>{
-          //setSelectedAppointmentId(null);
-          refetchLocations();
-        },
-        undefined,
-        ()=>{setMode(AppointmentPanelState.Card)}
-      )
-  
-    }
-
-    const { selectedLocationId, setSelectedAppointmentId,refetchLocations  } = useAppContext()
-
-    const {id, date,end,start, status, appointment_types} = appointment
-
-    function getUI(selectedMode){        
-        switch(selectedMode){
-            case AppointmentPanelState.AddButton:
-              return <>
-                <div className="appointment_card">
-                  <button onClick={e=>setMode(AppointmentPanelState.New)} className="">Create Appointment</button>
-                </div>
-              </>     
-            case AppointmentPanelState.New:
-              return <>
-                <div className="appointment_card">
-                    <AppointmentForm
-                      cancelForm={()=>setMode(AppointmentPanelState.AddButton)}
-                      submitForm ={handlePostAppointment}
-                      form={ {...appointmentForm}  }
-                      validAppointmentTypes={icons}
-                      isFormSubmitting={loading}/>
-                </div>
-                </>
-            case AppointmentPanelState.EditStatus:
-               return <>
-                <div className="appointment_card">
-                    <AppointmentForm
-                        cancelForm={()=>setMode(AppointmentPanelState.Card)}
-                        submitForm ={handleEditAppointmentStatus}
-                        form={ {id, date, end_time: end, start_time: start, status} }
-                        validAppointmentTypes={icons}
-                        isFormSubmitting={loading}/>
-                  </div>
-                </>
-            case AppointmentPanelState.Card:
-                return <>
-                   <div className={`appointment_card ${isAppointmentSelected  && `appointment_card_selected`}`} 
-                        onClick={e=> setSelectedAppointmentId(id) }>
-                          <AppointmentCard 
-                            {...{appointment, isAppointmentSelected}}
-                            handleSetEdit={()=>setMode(AppointmentPanelState.EditStatus)}/>    
-                  </div>          
-                </>;
-            default: return <></>
-        }
-    }
-    return(<>
-       { /*<div className={`appointment_card ${isAppointmentSelected  && `appointment_card_selected`}`} 
-            onClick={e=> setSelectedAppointmentId(id) }>*/}
-                {getUI(mode)}
-        {/*</div>*/}
     </>);
 }
 
- function AppointmentCard({
-  appointment = {},
-  isAppointmentSelected = false,
-  handleSetEdit = ()=>{}
- }){
+function StoreOwnerAppointment({
+  appointee,
+  appointment_types,
+  //date,
+  start,
+  end,
+  status, 
+  id,
+}){
 
-  const { isUser, isStoreOwner } = useAuth();  
+  const { config } = useConfig(); 
 
-  const {id, date,end,start, status, appointment_types, appointee} = appointment
+  const { loading, editAppointmentStatus } = useAPI()
 
-   const { loading, deleteAppointment } = useAPI();
+  const { refetchLocations } = useAppContext()
 
-   const { refetchLocations } = useAppContext()
-
-  const  handleDeleteAppointment =(appointment_id) =>{
-    deleteAppointment({appointment_id},(result)=>{refetchLocations()})
+  function handleEditAppointmentStatus(id, status){
+    editAppointmentStatus({id, status},
+      (result)=>{
+        updateForm({ status }) 
+        showRead()
+        refetchLocations();
+      },
+      (err)=>{console.log(err); },
+    )
 }
-  
+
+  const readOnlyUI = ({appointee, appointment_types, start, end, status}) => ({
+    apointeeCol:   <>{appointee}</>,
+    appointmentTypesCol: <>{appointment_types.map((apt_type)=>getIconByKey(apt_type))}</>,
+    startCol:   <>{start}</>,
+    endCol:     <>{end}</>,
+    statusCol:  <>{status}</>,
+    actionCol:  <>
+        <ActionButton handler={handleEdit} text="Edit"/>
+    </>,
+ })
+
+
+const editUI = ({appointee, appointment_types, start, end, status}) => {
+
+    return{
+      apointeeCol:   <>{appointee}</>,
+      appointmentTypesCol: <>{appointment_types.map((apt_type)=>getIconByKey(apt_type))}</>,
+      startCol:   <>{start}</>,
+      endCol:     <>{end}</>,
+      statusCol:  <>
+        <select name="status" value={status} onChange={handleChange}>
+          {config.STATUS.map((status,idx)=> <option key={idx} value={status}>{status}</option>) }                   
+        </select>
+      </>,
+      actionCol:  <>
+          <ActionButton handler={()=>handleEditAppointmentStatus(id, status)} text="Save"/>
+          <ActionButton handler={handleCancel} text="X"/>
+      </>,
+    }
+}
+
+function handleChange(e){
+  updateForm({ [e.target.name]: e.target.value } ) 
+ }
+
+ function handleEdit(){
+   showEdit()
+ }
+
+ function handleCancel(){
+   updateForm({ status } ) 
+   showRead()
+ }
+
+const { 
+  state: {ui, formInputs} , 
+  updateForm,
+  showRead,
+  showEdit
+} = useToggleUI({appointee,appointment_types,start,end,status},readOnlyUI, editUI)
+      
+const {apointeeCol, appointmentTypesCol, startCol, endCol, statusCol, actionCol} = ui
+
+//div>{appointmentTypesCol}</div>
+
   return(<>
-    <LoadingOverlay isLoading={loading} isFullscreen={false}/>
-
-
-
-    {isStoreOwner() ? <div className="form_row"> 
-        <div>customer</div>
-        <div>{appointee}</div>
-    </div> : <></>}
-
-    <div className="form_row">
-      <div>  type  </div>
-      <div className="appointment_card_icons">
-        <IconList icons={appointment_types} iconSize={15}/>
-      </div>
-    </div>
-
-    
-
-    <div className="form_row"> 
-        <div>date</div>
-        <div>{/*date*/} 10/10/23 </div>
-    </div>
-
-    <div className="form_row">
-      <div>start-time </div>
-      <div>{/*start*/} 10:30 AM </div>
-    </div>
-
-    <div className="form_row">
-      <div>  end-time </div>
-      <div> {/*end*/} 11:30 AM </div>
-    </div>
-
-    <div className="form_row"> 
-      <div> status </div>
-      <div> {status} </div>
-    </div>
-
-    {isUser() ? <>
-        <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>handleDeleteAppointment(id)}>Cancel</button>
-    </>: <></>}
-    {isStoreOwner() ? <>
-        <button className={isAppointmentSelected ? "show_btn" : "hide_btn"} onClick={e=>handleSetEdit()}>Update Status</button>
-    </>: <></>}
+    <tr className="table_row">
+      <LoadingOverlay isLoading={loading} isFullscreen={false} loadingText={"Saving"}/>
+      <td>{apointeeCol}</td>
+      <td>{appointmentTypesCol}</td>
+      <td>{startCol}</td>
+      <td>{endCol}</td>
+      <td>{statusCol}</td>
+      <td>{actionCol}</td>
+    </tr>  
   </>);
 }
 
-function AppointmentForm({
-    cancelForm = ()=>{} , 
-    submitForm = ()=>{},
-    form = appointmentForm,
-    validAppointmentTypes = [getIcons()],
-    isFormSubmitting = false
- // LocationFormState = ""
+function UserAppointment({
+  appointment_types = [],
+  date = "",
+  start = "",
+  end ="",
+  status = "",
+  icons = [],  
+  id = "",
+  startingState = ToggleUIState.Read,
 }){
 
-    const { isStoreOwner, isUser } = useAuth();
-    const { config } = useConfig();  
+  //console.log("rerender ua: ", start, status)
 
-    const {
-        selectedIcons,
-        toggleIcon,
-    } = useIcons();
-  
-    const [ formFields, setFormFeilds ] = useState(form)
+  const {selectedIcons, toggleIconSingle, clearIcons } = useIcons();
 
-    const areFieldsValid = () => formFields.date.trim() && formFields.start_time.trim() && formFields.end_time.trim() && selectedIcons.length > 0
-  
-    function handleChange(e){
-      setFormFeilds({
-        ...formFields,
-        [e.target.name]: e.target.value
-      })
+  useEffect( ()=>updateForm({selectedIcons} ) , [selectedIcons]);
+
+  useEffect( ()=>updateForm({status})  , [status]);
+
+  const { loading, postAppointment,deleteAppointment } = useAPI()
+
+  const { refetchLocations,selectedLocationId, } = useAppContext()
+
+  const  handleDeleteAppointment =() =>{
+    deleteAppointment({id},(result)=>{refetchLocations()})
+  }
+
+  function handlePostAppointment(formFields){
+
+    const new_appointment = {
+      loc_id: selectedLocationId,
+      start_time: formFields.start,
+      end_time: formFields.end,
+      apt_types: formFields.selectedIcons,
+      date: formFields.date
     }
-  
-    function handleSubmit(e){
-      e.preventDefault();
-      console.log(formFields);
-      submitForm({...formFields, apt_types: [...selectedIcons]});
+
+    postAppointment({new_appointment},
+      (result)=>{
+        console.log(result)
+        clearIcons()
+        updateForm({ date, start, end, }) 
+        showEdit()
+        refetchLocations();
+      },
+      (err)=>{},
+    )
+
+  }
+
+  const readOnlyUI = ({ date, start, end, status}) => ({
+    appointmentTypesCol: <>
+      <IconList iconSize={16} icons={appointment_types} />
+     </>,
+    dateCol:   <>{date}</>,
+    startCol:   <>{start}</>,
+    endCol:     <>{end}</>,
+    statusCol:  <>{status}</>,
+    actionCol:  <>
+        <ActionButton handler={()=>handleDeleteAppointment()} text="Cancel"/>
+    </>,
+ })
+
+
+const editUI = ({appointment_types, start, end, date, status,selectedIcons}) => {
+    return{
+      appointmentTypesCol: <> 
+        <IconList iconSize={16} icons={icons} selectedIcons={selectedIcons} toggleIcon={toggleIconSingle}/> 
+      </>,
+      dateCol:   <><input type="date" name="date" value={date}  onChange={handleChange}/></>,
+      startCol:   <><input type="time" name="start" value={start}  onChange={handleChange}/></>,
+      endCol:      <><input type="time" name="end" value={end}  onChange={handleChange}/></>,
+      statusCol:  <>{status}</>,
+      actionCol:  <>
+        <ActionButton handler={()=>handlePostAppointment({start,end,date,selectedIcons})} text="Save"/>
+      </>,
     }
-//${isUser() && `top_margin_add_user_apt`}
-    return(<>
-
-        <LoadingOverlay isLoading={isFormSubmitting} isFullscreen={false}/>
-
-        <div className={`form_row top_margin_apt_card`}> type:
-          <div className="appointment_card_icons">
-              {isUser() ? 
-              <>
-                <IconList 
-                  iconSize={16}
-                  icons={validAppointmentTypes}
-                  selectedIcons={selectedIcons}
-                  toggleIcon={toggleIcon}/>          
-              </> : <>
-                <IconList icons={validAppointmentTypes}/>       
-              </>}           
-          </div>
-        </div>
-
-        <form className="form_card" onSubmit={handleSubmit}>
-          <button onClick={e=>cancelForm()} className="cancel_panel_btn">X</button>
-
-          <div className="form_row">
-            date 
-            {isUser() ? <input type="date" name="date" value={formFields.date.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.date}</>}
-          </div>
-          <div className="form_row">
-            start-time 
-            {isUser() ? <input type="time" name="start_time" value={formFields.start_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.start_time}</>}
-          </div>
-          <div className="form_row">
-            end-time
-            {isUser() ? <input type="time" name="end_time" value={formFields.end_time.trim()} className="appointment_form_input" onChange={handleChange} required /> : <>{formFields.end_time}</>} 
-          </div>
-
-         {isStoreOwner() ?  
-            <div className="form_row">
-                status
-                <select name="status" value={formFields.status} onChange={handleChange}>
-                  {config.STATUS.map((status,idx)=>
-                    <option key={idx} value={status}>{status}</option>) }                   
-                </select>
-            </div> : <></>}
-
-
-          <input type="submit" value="Confirm" disabled={isUser() && !areFieldsValid()}/>
-        </form>
-    </>);
 }
 
-export default AppointmentList
+function handleChange(e){
+  updateForm({ [e.target.name]: e.target.value } ) 
+ }
+
+ function handleEdit(){
+   showEdit()
+ }
+
+ function handleCancel(){
+   updateForm({ appointment_types,start,end,status, date } ) 
+   showRead()
+ }
+
+const { 
+  state: {ui, formInputs} , 
+  updateForm,
+  showRead,
+  showEdit
+} = useToggleUI({appointment_types,start,end,status, date,},readOnlyUI, editUI,startingState)
+      
+const {dateCol, appointmentTypesCol, startCol, endCol, statusCol, actionCol} = ui
+
+//div>{appointmentTypesCol}</div>
+
+  return(<>
+    <tr className="table_row">
+      <LoadingOverlay isLoading={loading} isFullscreen={false} loadingText={"Saving"}/>
+      <td>{appointmentTypesCol}</td>
+      <td>{dateCol}</td>
+      <td>{startCol}</td>
+      <td>{endCol}</td>
+      <td>{statusCol}</td>
+      <td>{actionCol}</td>
+    </tr>  
+  </>);
+}
+
+export default AppointmentList;
