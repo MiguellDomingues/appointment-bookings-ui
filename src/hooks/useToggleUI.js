@@ -38,7 +38,7 @@ export function useToggleUI(formData, read, edit, startingState = ToggleUIState.
 
     function init(read, data){
 
-     const _uiKeys = Object.keys(read(data));
+     const _uiKeys = Object.keys(read(data)); // i need to do some validation here to make sure the key names match on each function return
 
         let ui = { };
 

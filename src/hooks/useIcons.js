@@ -3,30 +3,35 @@ import {useState } from 'react'
 
 import { getIcons } from '../components/IconList'
 
-function useIcons(icons = []){
+function useIcons(startingIcons = []){
 
-    const [selectedIcons, setSelectedIcons] = useState(icons);
+    const [selectedIcons, setSelectedIcons] = useState(startingIcons);
 
-    function toggleIcon(icon_key = ""){
-
-        if(!getIcons().includes(icon_key)){ //if the icon does not exist in the icon list
-            return
-        }
-        
-        if(selectedIcons.includes(icon_key)){ //toggle icon
-            setSelectedIcons( selectedIcons=>selectedIcons.filter(icon=>icon !== icon_key) )
-        }else{ //add icon
-            setSelectedIcons( selectedIcons=>[...selectedIcons, icon_key] )
-        }
+    function toggleIcon(icon_key = "", ){
+        if(!getIcons().includes(icon_key))
+            return   ;
+        if(selectedIcons.includes(icon_key))
+            setSelectedIcons( selectedIcons=>selectedIcons.filter(icon=>icon !== icon_key) );
+        else
+            setSelectedIcons( selectedIcons=>[...selectedIcons, icon_key] );
     }
 
+    function toggleIconSingle(icon_key = ""){
+        if(!getIcons().includes(icon_key))   
+            return;
+        if(selectedIcons.includes(icon_key)) 
+            clearIcons();
+        else              
+            setSelectedIcons([icon_key])  ;   
+    }  
+
     function getDisabledIconsForLocations(locations = []){ 
-        const locationIcons = [] //first generate a list of icons that exist across all locations
+        const locationIcons = [];
     
         locations.forEach((location)=>{ //for each location
           location?.icons?.forEach((icon)=>{ //for each icon describing a location
             if(!locationIcons.includes(icon)){  //if the icon is not present in the return list, add it
-              locationIcons.push(icon) 
+              locationIcons.push(icon) ;
             }
           })
         })
@@ -56,9 +61,17 @@ function useIcons(icons = []){
         return filtered_locations;
     }
 
+    function clearIcons(){
+        setSelectedIcons([]);
+    }
+
+
+
     return {
         selectedIcons,
         toggleIcon,
+        toggleIconSingle,
+        clearIcons,
         getDisabledIconsForLocations,
         filterLocationsBySelectedIcons,
     }
