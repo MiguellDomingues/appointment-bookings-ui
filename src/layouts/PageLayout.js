@@ -33,8 +33,9 @@ function PageLayout({
             <div className="header">
               <Header/>
             </div>
-  
-            {rightPanel} 
+            <div className="body_panel">
+              {rightPanel} 
+            </div>
           </div>
   
         </div>

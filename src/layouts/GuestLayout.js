@@ -3,7 +3,7 @@ import {useState, useEffect, } from 'react'
 
 import MyMap from '../components/Map.tsx'
 import PageLayout from '../layouts/PageLayout';
-import {BodyPanel, BodyPanelState } from '../components/BodyPanel'
+import LocationList from '../components/LocationList'
 
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
@@ -62,11 +62,8 @@ function GuestLayout({
                   selected={selectedLocationId} 
                   handleSelectedLocation={selectLocation} /> 
               </>,
-              rightPanel: <>
-                  <BodyPanel 
-                    startingMode={BodyPanelState.Location}
-                    filteredLocations={filteredLocations}
-                    loading={loading}/>
+              rightPanel: <>         
+                  <LocationList {...{loading}} locations={filteredLocations}/>            
               </>} 
           }   
           default: return <></>

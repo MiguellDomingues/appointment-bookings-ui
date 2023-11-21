@@ -29,24 +29,21 @@ export function BodyPanel({
     const context = useAppContext();
   
     context.handleManageAppointments = () =>setMode(BodyPanelState.Appointment)
-    
 
-  
     function getBodyUI(selectedMode){    
   
       switch(selectedMode){
           case BodyPanelState.Location:
               return <>
-                <div className="body_panel body_locations">
-                    <LocationList locations={filteredLocations} loading={loading}/>
-                </div>
+                <LocationList locations={filteredLocations} loading={loading}/>
               </>
           case BodyPanelState.Appointment:
               return <>
-                  <div className="body_panel body_appointments">
-                    { isToggleable ? <button onClick={e=>setMode(startingMode)} className="cancel_panel_btn">X</button> : <></>}
-                    <AppointmentList {...{appointments, icons} } loading={loading}/> 
-                  </div>
+                { isToggleable ? <button onClick={e=>setMode(startingMode)} className="cancel_panel_btn">X</button> : <></>}
+                <AppointmentList //{...{appointments, icons} } 
+                  appointments={[...appointments]}
+                  icons={[...icons]}
+                  loading={loading}/> 
               </>
            
           default: return <></>

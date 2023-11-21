@@ -23,7 +23,7 @@
 .page_section_right{
   position: relative;
   height: 100%;
-  width: 33.3333%;
+  width: 40%;
   box-sizing: border-box;
   border: 1px solid #dddddd;
   display: flex;
@@ -32,37 +32,35 @@
 
 .page_section_left{
   height: 100%;
-  width: 66.6666%;
+  width: 60%;
   box-sizing: border-box;
   border: 1px solid #dddddd;
 }
 
 .body_panel{
-  position: relative;
   height: 92.5%;
-  padding-top: 2rem;
   width: 100%;
   box-sizing: border-box;
   border: 1px solid #dddddd;
-  display: flex;
-  overflow-y: scroll;
-
+  position: relative;
 }
 
-.body_locations{
+.body_locations{ 
+  display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: scroll;
+  padding-top: 2rem;
 }
 
 .body_appointments{
+  display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
   gap: 1rem;
   align-content: flex-start;
 }
-
-
 
 .user_tab{
   border-radius: 0px 0px 40px 40px;
@@ -360,6 +358,17 @@
 
 .RBC_break_interval_override{
   background-color: red !important;
+}
+
+.body_availability{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.table_width{
+  width: 100%;
 }
 
 

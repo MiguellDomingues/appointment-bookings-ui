@@ -55,34 +55,32 @@ function LocationList({
     const disabledIcons = getDisabledIconsForLocations(locations);
 
     return(<>
+        <div className="body_locations">
 
-        <LoadingOverlay 
-            isLoading={loading && !loadingConfigs && !loadingUser} 
-            isFullscreen={false}
-            loadingText={"Loading Data"}/>
+            <LoadingOverlay 
+                isLoading={loading && !loadingConfigs && !loadingUser} 
+                isFullscreen={false}
+                loadingText={"Loading Data"}/>
 
-        {!isStoreOwner() ? <>
-            <div className="icon_list_container">
-            <IconList 
-                iconSize={24}
-                disabledIcons={disabledIcons}
-                icons={getIcons()}
-                selectedIcons={selectedIcons}
-                toggleIcon={toggleIcon}/>
+            {!isStoreOwner() ? <>
+                <div className="icon_list_container">
+                <IconList 
+                    iconSize={24}
+                    disabledIcons={disabledIcons}
+                    icons={getIcons()}
+                    selectedIcons={selectedIcons}
+                    toggleIcon={toggleIcon}/>
+            </div>
+            </> : <></>}
+            
+            {locations.map( (location, idx)=>
+                <LocationPanel
+                    key={idx}
+                    isLocationSelected = {location.id === selectedLocationId}
+                    startingMode = {LocationPanelState.Card}
+                    {...{location,}}/>)}
+
         </div>
-        </> : <></>}
-        
-        {locations.map( (location, idx)=>
-            <LocationPanel
-                key={idx}
-                isLocationSelected = {location.id === selectedLocationId}
-                startingMode = {LocationPanelState.Card}
-                {...{location,}}/>)}
-
-            {/*isStoreOwner() ? <>
-                <LocationPanel startingMode = {LocationPanelState.AddButton}/>          
-        </> : <></> */}
-
     </>)
 }
 

@@ -13,6 +13,8 @@ import WorkingPlanList   from '../components/WorkingPlanList'
 import BreakList   from '../components/BreakList'
 import ServiceDurationList   from '../components/ServiceDurationList'
 import MyMap from '../components/Map.tsx';
+import LocationList from '../components/LocationList';
+import AppointmentList from '../components/AppointmentList';
 import {BodyPanel,BodyPanelState} from '../components/BodyPanel';
 
 import useAvailability from '../hooks/useAvailability';
@@ -55,16 +57,8 @@ function StoreOwnerLayout({
     selectedAppointments, 
     selectedCalendarDayAppointments } = useCalendarAppointments()
 
-
-
     useEffect( () => getData(), []);
     //for data fetching///////////////
-    function getData(){ 
-        fetchAuthLocations({},(results)=>{
-          console.log("////////////////AUTH FETCH", data)
-            setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
-        })
-    }
 
     useEffect( () => { 
   
@@ -82,7 +76,13 @@ function StoreOwnerLayout({
     
  }, [mode]); //if the user navigates to a new page, close the map preview
 
-   
+ function getData(){ 
+  fetchAuthLocations({},(results)=>{
+    console.log("////////////////AUTH FETCH", data)
+      setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
+  })
+}
+
   const context = useAppContext();
 
   context.refetchLocations = () => getData()
@@ -107,57 +107,42 @@ function StoreOwnerLayout({
   context.selectLocation = selectLocation
   context.viewMapPreview = viewMapPreview
   context.cancelMapPreview = cancelMapPreview
-  context.selectedCalendarDayAppointments = selectedCalendarDayAppointments
+  context.selectCalendarDayAppointments = selectedCalendarDayAppointments
 
-    function getPageUI(selectedMode){     
-      switch(selectedMode){
-          case PageState.Map:{
-            return{
-              leftPanel:<>
-                <MyMap  {...{...getMapProps()}}/>
-              </>,
-              rightPanel:<>
-                <BodyPanel 
-                  startingMode={BodyPanelState.Location}
-                  filteredLocations={locations} 
-                  loading={loading}/>
-                </>,
-              }
-          }   
-          case PageState.Calendar:{
-            return{
-              leftPanel:<>
-                 <CalendarPanel appointments={data[0].appointments}/>
-              </>,
-              rightPanel:<>
-                <BodyPanel 
-                  startingMode={BodyPanelState.Appointment}
-                  appointments={selectedAppointments}
-                  icons={data[0].icons}
-                  loading={loading}/>
-                </>
-            }  
+  function getPageUI(selectedMode){     
+    switch(selectedMode){
+        case PageState.Map:{
+          return{
+            leftPanel:<MyMap  {...{...getMapProps()}}/>,
+            rightPanel:<LocationList {...{locations, loading}}/>,
+          }
+        }   
+        case PageState.Calendar:{
+          return{
+            leftPanel:<CalendarPanel appointments={data[0].appointments}/>,
+            rightPanel:<AppointmentList appointments={selectedAppointments} icons={data[0].icons}loading={loading}/>        
           }  
-          case PageState.Availability:
-            return{
-              leftPanel:<>
-                <Calendar {...calendarProps}/>
-              </>,
-              rightPanel:<>
+        }  
+        case PageState.Availability:
+          return{
+            leftPanel:<Calendar {...calendarProps}/>,
+            rightPanel:<>
+              <div className="body_availability">
                 <WorkingPlanList {...workingPlanListProps}/>
                 <BreakList {...breakListProps}/>
                 <ServiceDurationList {...serviceDurationListProps}/> 
-              </>}        
-          default: return <></>
-      }
+              </div>
+            </>}        
+        default: return <></>
     }
-
-    const {leftPanel, rightPanel} = getPageUI(mode)
-
-    return(<>
-      <PageLayout leftPanel={leftPanel} rightPanel={rightPanel}/>
-    </>)
-
   }
+
+  const {leftPanel, rightPanel} = getPageUI(mode)
+
+  return(<>
+    <PageLayout leftPanel={leftPanel} rightPanel={rightPanel}/>
+  </>)
+
+}
 
 export default StoreOwnerLayout;
