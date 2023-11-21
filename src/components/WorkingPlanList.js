@@ -9,7 +9,7 @@ const hourMinutestoTotalMinutes = timeString => parseInt(timeString.split(":")[0
 function WorkingPlanList({workingPlan,updateWorkingPlanDay}){
 
     return(<> 
-        <table className="table_border">
+        <table className="table_border table_width">
         <caption className="table_title">Working Plan</caption>
             <tbody>
                 <tr>    

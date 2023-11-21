@@ -5,7 +5,7 @@ import { getIconByKey }   from './IconList'
 function ServiceDurationList({serviceDurations,updateServiceDuration}){
 
     return(<>
-         <table className="table_border">
+         <table className="table_border table_width">
             <caption className="table_title">Service Durations</caption>
             <tbody>
                 <tr>    

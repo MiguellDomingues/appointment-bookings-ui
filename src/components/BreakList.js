@@ -31,7 +31,7 @@ const abbreviatedDays = Object.freeze({
 function BreakList({breaks,deleteWorkingBreak,addWorkingBreak}){
 
     return(<>
-         <table className="table_border">
+         <table className="table_border table_width">
             <caption className="table_title">Breaks</caption>
             <tbody>
                 <tr>    

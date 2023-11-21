@@ -109,11 +109,7 @@ function CalendarPanel({
             </div>)
     }
 
-   // console.log("static data", appointmentsByDMY)
-   // console.log("calced data", groupedAppointments)
-
     return(<>
-
         <Calendar 
           className="calendar_wrapper"
           //activeStartDate={null}
@@ -123,18 +119,13 @@ function CalendarPanel({
           value={selectedDay} 
           tileClassName={ ()=> "calendar_appointments_wrapper"} //react-calendar__tile--now
           tileContent={tileAppointments}
-          minDate={new Date()}
-        />
-    
-
+          minDate={new Date()}/>
     </>);
-
 }
 
 function CalendarTile({
     tileAppointments = []
 }){
-    //console.log(tileAppointments )
     return(<>
         {tileAppointments.map(({start, appointment_types}, idx)=>
             <div className="columns" key={idx}>
