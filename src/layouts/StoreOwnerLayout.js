@@ -15,12 +15,12 @@ import ServiceDurationList   from '../components/ServiceDurationList'
 import MyMap from '../components/Map.tsx';
 import LocationList from '../components/LocationList';
 import AppointmentList from '../components/AppointmentList';
-import {BodyPanel,BodyPanelState} from '../components/BodyPanel';
 
 import useAvailability from '../hooks/useAvailability';
 import useLocationMap from '../hooks/useLocationMap';
-import useAppointments from '../hooks/useAppointments';
-import useAPI from '../useAPI'
+
+import useTestAPI from '../useAPI.js'
+import API from '../API'
 
 import '../styles.css';
 
@@ -44,15 +44,7 @@ function StoreOwnerLayout({
 
 
 
-
-
-
-  //console.log("___locations", _locations)
-  //console.log("_____appointments", appointments)
-  //console.log("_____data", data)
-  
-
-  const { fetchAuthLocations, loading } = useAPI();
+  const { fetchAuthLocations, loading } = useTestAPI(API.fetchAuthLocations);
 
   const {
     calendarProps, 

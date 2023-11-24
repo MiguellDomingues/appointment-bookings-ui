@@ -6,7 +6,9 @@ import LocationList from '../components/LocationList'
 
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
-import useAPI from '../useAPI'
+
+import useTestAPI from '../useAPI.js'
+import API from '../API'
 
 import {useAppContext } from '../AppContextProvider'
 
@@ -21,7 +23,7 @@ function GuestLayout({
   startingMode = PageState.Map
 }){
 
-    const {fetchGuestLocations, loading } = useAPI();
+    const {fetchGuestLocations, loading } = useTestAPI(API.fetchGuestLocations);
 
     const [data, setData] = useState([]);
 
@@ -60,7 +62,8 @@ function GuestLayout({
                   handleSelectedLocation={selectLocation} /> 
               </>,
               rightPanel: <>         
-                  <LocationList {...{loading}} locations={filteredLocations}/>            
+                  <LocationList {...{loading}}
+                  locations={filteredLocations}/>            
               </>} 
           }   
           default: return <></>

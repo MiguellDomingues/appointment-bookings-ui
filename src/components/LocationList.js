@@ -1,7 +1,9 @@
 import {useState, useEffect } from 'react'
 
 import { useAuth } from '../AuthProvider'
-import useAPI from '../useAPI'
+
+import useTestAPI from '../useAPI'
+import API from '../API'
 
 import {IconList, getIcons} from './IconList'
 
@@ -99,7 +101,9 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
 
     //const _isLocationSelected = isLocationSelected(id)
 
-    const {loading, editLocation, postLocation } = useAPI();
+    //const {loading, editLocation, postLocation } = useAPI();
+
+    const {loading, editLocation, } = useTestAPI(API.editLocation);
 
     //useEffect(()=>setMode(startingMode), [isLocationSelected]);// selectedLocationId
     function getUI(selectedMode){
@@ -111,7 +115,7 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
                 return <>
                     <LocationForm
                         cancelForm={()=>setMode(LocationPanelState.AddButton)}
-                        submitForm ={postLocation}
+                        submitForm ={()=>{}}
                         form={ locationForm }
                         isFormSubmitting = { loading }
                         LocationFormState = {LocationFormState.New}/>
@@ -152,7 +156,7 @@ function LocationCard({
     const { isStoreOwner, isUser } = useAuth();  
     const {info, address, id, LatLng, icons, appointments, city, email, phone, postal_code, province, title, country} = location
 
-    const {loading, deleteLocation } = useAPI();
+
 
     const { handleManageAppointments } = useAppContext();
 
@@ -163,8 +167,7 @@ function LocationCard({
     //console.log({info, address, id, LatLng, icons, appointments, city, email, phone, postal_code, province, title, country} )
 
     return(<>
-        <LoadingOverlay isLoading={loading} isFullscreen={false}/>
-
+       
         {<div className="icon_list_container">
             <IconList icons={icons}/>
         </div>}
@@ -243,12 +246,12 @@ function LocationForm({
 
     const { refetchLocations, viewMapPreview,cancelMapPreview } = useAppContext();
     const {selectedIcons,toggleIcon} = useIcons(currentIcons);
-    const {loading, fetchMapInfo} = useAPI();
+    const {loading, fetchMapInfo} = useTestAPI(API.fetchMapInfo);
 
     const [ formFields, setFormFeilds ] = useState({...form})
     const areFieldsInvalid = () => !(formFields.info.trim() && formFields.address.trim() && selectedIcons.length > 0)
 
-
+    //console.log(form)
     
 
     function handleCancelForm(){
@@ -274,7 +277,7 @@ function LocationForm({
             console.log(status)
 
             if(!success || status !== "OK"){
-                throw new Error("API error")          
+                throw new Error(" fetchMapInfo API error")          
             }else{
                 viewMapPreview(results[0].geometry.location, formFields.info, formFields.title)
             }
@@ -293,13 +296,13 @@ function LocationForm({
         //console.log(formFields, selectedIcons);
         const submitObject = {...formFields, icons: [...selectedIcons]}
         console.log("loc form: ",formFields)
-        /*
+        
         submitForm (
             { submitObject }, 
             ()=>{
                 refetchLocations()
                 cancelForm()
-        })*/
+        })
 
         
     }   

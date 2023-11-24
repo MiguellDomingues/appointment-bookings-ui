@@ -9,7 +9,10 @@ import { BodyPanel,BodyPanelState} from '../components/BodyPanel'
 
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
-import useAPI from '../useAPI'
+
+import useTestAPI from '../useAPI.js'
+
+import API from '../API'
 
 import {useAppContext} from '../AppContextProvider'
 
@@ -55,7 +58,7 @@ function UserLayout({
 
   const [allAppointments, setAllAppointments] = useState([]);
 
-  const { fetchAuthLocations, loading } = useAPI();
+  const { fetchAuthLocations, loading } = useTestAPI(API.fetchAuthLocations);
   const { selectedIcons, toggleIcon} = useIcons();
   const { filteredLocations, locations, selectedLocationId, selectLocation,} = useLocationMap(data, selectedIcons)
 

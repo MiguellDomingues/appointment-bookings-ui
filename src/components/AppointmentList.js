@@ -10,20 +10,14 @@ import { IconList, getIconByKey }   from './IconList'
 import {useAppContext}        from '../AppContextProvider'
 import LoadingOverlay         from './LoadingOverlay'
 
-
 import useIcons               from '../hooks/useIcons'
 import {useToggleUI,ToggleUIState }             from '../hooks/useToggleUI'
 
-import useAPI                 from '../useAPI'
+import useTestAPI from '../useAPI'
+import API from '../API'
 
 
 import '../styles.css';
-
-const appointmentForm = {
-    date: "",
-    start_time: "",
-    end_time: "",
-  }
 
 function AppointmentList({
   appointments = [],
@@ -31,7 +25,7 @@ function AppointmentList({
   loading = false
 }){
 
-    const { isUser,loadingConfigs,loadingUser, isStoreOwner } = useAuth();   
+    const { isUser,loadingUser, isStoreOwner } = useAuth();   
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
  
     const context = useAppContext()
@@ -49,7 +43,7 @@ function AppointmentList({
         <div className="body_appointments">
 
         <LoadingOverlay 
-            isLoading={loading && !loadingConfigs && !loadingUser} 
+            isLoading={loading && !loadingUser} 
             isFullscreen={false}
             loadingText={"Loading Data"}/>  
 
@@ -116,7 +110,7 @@ function StoreOwnerAppointment({
   id,
 }){
 
-  const { loading, editAppointmentStatus } = useAPI()
+  const { loading, editAppointmentStatus } = useTestAPI(API.editAppointmentStatus)
 
   const { refetchLocations } = useAppContext()
 
@@ -218,7 +212,8 @@ function UserAppointment({
 
   useEffect( ()=>updateForm({status})  , [status]);
 
-  const { loading, postAppointment,deleteAppointment } = useAPI()
+  const { loading: loadingPostAppointment, postAppointment } = useTestAPI(API.postAppointment)
+  const { loading: loadingDeleteAppointment, deleteAppointment } = useTestAPI(API.deleteAppointment)
 
   const { refetchLocations,selectedLocationId, } = useAppContext()
 
@@ -304,7 +299,7 @@ const {dateCol, appointmentTypesCol, startCol, endCol, statusCol, actionCol} = u
 
   return(<>
     <tr className="table_row">
-      <LoadingOverlay isLoading={loading} isFullscreen={false} loadingText={"Saving"}/>
+      <LoadingOverlay isLoading={loadingPostAppointment || loadingDeleteAppointment} isFullscreen={false} loadingText={"Saving"}/>
       <td>{appointmentTypesCol}</td>
       <td>{dateCol}</td>
       <td>{startCol}</td>
