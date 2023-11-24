@@ -38,6 +38,8 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
 
       const markers = posts || [];
 
+      
+
       const [zoom, setZoom] = React.useState(startZoom); // initial zoom
     
       //console.log("Map start:" , posts, selected)
@@ -51,7 +53,9 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
        //num of locations   
        function calcStartingCenter(locations = []){
 
-        if(locations.length === 0) return {lat: 0.0, lng: 0.0}
+        //console.log(locations)
+
+        if(locations.length === 0 || !locations[0]?.LatLng) return {lat: 0.0, lng: 0.0}
 
         let LatSum = 0.0
         let LngSum = 0.0

@@ -283,7 +283,7 @@ function useAvailability(){
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    console.log(closeIntervals)
+    //console.log(closeIntervals)
 
     return {
         calendarProps: {

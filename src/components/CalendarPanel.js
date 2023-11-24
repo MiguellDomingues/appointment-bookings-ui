@@ -63,24 +63,24 @@ function CalendarPanel({
     appointments = []
 }){
 
-    const {  selectCalendarDayAppointments } = useAppContext();
+    const {  selectAppointments } = useAppContext();
 
     const groupedAppointments = useMemo(() => groupAppointmentsByDate(appointments), [appointments]);
 
     const [selectedDay, setSelectedDay] = useState(new Date());
 
     useEffect(()=>{ //when app first renders, set the appointments to appear in right panel to todays appointments
-        selectCalendarDayAppointments(getGroupedAppointmentsByDate(selectedDay))
+        selectAppointments(getGroupedAppointmentsByDate(selectedDay))
     }, [])
 
     //when all appointments are updated from a refresh, refresh the calendarDayAppointments so the appointmentlist rerenders
     useEffect(()=>{  
-        selectCalendarDayAppointments(getGroupedAppointmentsByDate(selectedDay))
+        selectAppointments(getGroupedAppointmentsByDate(selectedDay))
     }, [appointments])
 
 
     function handleSelectDay(date){
-        selectCalendarDayAppointments(getGroupedAppointmentsByDate(date))
+        selectAppointments(getGroupedAppointmentsByDate(date))
         setSelectedDay(date)
     }
 

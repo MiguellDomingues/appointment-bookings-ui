@@ -120,8 +120,8 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
                return <>
                     <LocationForm
                         cancelForm={()=>setMode(LocationPanelState.Card)}
-                        submitForm ={editLocation}
-                        form={ {...location, title: "", province: "", country: "", city: "", phone: "", email: "", postalCode:""} }
+                        submitForm ={editLocation} // title: "", province: "", country: "", city: "", phone: "", email: "", postalCode:""
+                        form={ {...location} } //locationForm ...location,
                         isFormSubmitting = { loading }
                         LocationFormState = {LocationFormState.Edit}
                         currentIcons={location.icons}/>
@@ -150,15 +150,17 @@ function LocationCard({
     handleSetEdit = () =>{},
 }){
     const { isStoreOwner, isUser } = useAuth();  
-    const {info, address, id, LatLng, icons, appointments} = location
+    const {info, address, id, LatLng, icons, appointments, city, email, phone, postal_code, province, title, country} = location
 
     const {loading, deleteLocation } = useAPI();
 
-    const { handleManageAppointments,handleConfigureAvailability, refetchLocations} = useAppContext();
+    const { handleManageAppointments } = useAppContext();
 
     //const handleDeleteLocation = (id) => deleteLocation({id}, ()=>refetchLocations())
 
     //console.log("location: ", location)
+
+    //console.log({info, address, id, LatLng, icons, appointments, city, email, phone, postal_code, province, title, country} )
 
     return(<>
         <LoadingOverlay isLoading={loading} isFullscreen={false}/>
@@ -168,7 +170,7 @@ function LocationCard({
         </div>}
 
         <div className="location_title">
-            <div className="title">Joes Automotive </div>
+            <div className="title">{title}</div>
         </div>
 
         <div className="form_row card_padding">
@@ -178,32 +180,32 @@ function LocationCard({
 
         <div className="form_row card_padding">
             <div>city</div>
-            <div>vancouver</div>
+            <div>{city}</div>
         </div>
 
         <div className="form_row card_padding">
             <div>province</div>
-            <div>british columbia</div>
+            <div>{province}</div>
         </div>
 
         <div className="form_row card_padding">
             <div>country</div>
-            <div>canada</div>
+            <div>{country}</div>
         </div>
 
         <div className="form_row card_padding">
             <div>postal code</div>
-            <div>V3W0T3</div>
+            <div>{postal_code}</div>
         </div>
 
         <div className="form_row card_padding">
             <div>phone</div>
-            <div>123-123-1234</div>
+            <div>{phone}</div>
          </div>
 
         <div className="form_row card_padding">
             <div>email</div>
-             <div>abcdefkdop@ssdsdsdsds.com</div>
+             <div>{email}</div>
         </div>
 
         <div className="form_row card_padding">
@@ -247,6 +249,8 @@ function LocationForm({
     const areFieldsInvalid = () => !(formFields.info.trim() && formFields.address.trim() && selectedIcons.length > 0)
 
 
+    
+
     function handleCancelForm(){
         cancelMapPreview()
         cancelForm()
@@ -288,12 +292,16 @@ function LocationForm({
         e.preventDefault();
         //console.log(formFields, selectedIcons);
         const submitObject = {...formFields, icons: [...selectedIcons]}
+        console.log("loc form: ",formFields)
+        /*
         submitForm (
             { submitObject }, 
             ()=>{
                 refetchLocations()
                 cancelForm()
-        })
+        })*/
+
+        
     }   
 
     return(<>
@@ -314,14 +322,6 @@ function LocationForm({
                 <div>title</div>
                 <div>
                     <input name="title" value={formFields.title.trim()} className="appointment_form_input" onChange={handleChange}  />  
-                    </div>
-            </div>
-
-            
-            <div className="form_row card_padding">
-                <div>info</div>
-                    <div>
-                    <input name="info" value={formFields.info.trim()} className="appointment_form_input" onChange={handleChange}  />  
                     </div>
             </div>
 
@@ -356,7 +356,7 @@ function LocationForm({
             <div className="form_row card_padding">
                 <div>postalCode</div>
                 <div>
-                    <input name="postalCode" value={formFields.postalCode.trim()} className="appointment_form_input" onChange={handleChange}  />  
+                    <input name="postalCode" value={formFields.postal_code.trim()} className="appointment_form_input" onChange={handleChange}  />  
                 </div>
             </div>
 
@@ -371,6 +371,21 @@ function LocationForm({
                 <div>email</div>
                     <div>
                     <input name="email" value={formFields.email.trim()} className="appointment_form_input" onChange={handleChange} />  
+                    </div>
+            </div>
+
+            <div className="form_row card_padding">
+                <div>info</div>
+                    <div>
+                    <textarea 
+                    name="info" 
+                    type="textarea"  //
+                    rows="5" 
+                    cols="33"  
+                    value={formFields.info.trim()}
+                    className="appointment_form_input" onChange={handleChange}/> 
+                       
+                 
                     </div>
             </div>
 

@@ -19,7 +19,7 @@ import {BodyPanel,BodyPanelState} from '../components/BodyPanel';
 
 import useAvailability from '../hooks/useAvailability';
 import useLocationMap from '../hooks/useLocationMap';
-import useCalendarAppointments from '../hooks/useCalendarAppointments';
+import useAppointments from '../hooks/useAppointments';
 import useAPI from '../useAPI'
 
 import '../styles.css';
@@ -30,12 +30,27 @@ const PageState = Object.freeze({
   Availability: "Availability"
 });
 
+
 function StoreOwnerLayout({
   startingMode = PageState.Map
 }){
 
   const [data, setData] = useState([]);
+
   const [ mode, setMode ] = useState(  startingMode );
+
+  const [appointments, setAppointments] = useState([]);
+  const [selectedAppointments, selectAppointments] = useState([]);
+
+
+
+
+
+
+  //console.log("___locations", _locations)
+  //console.log("_____appointments", appointments)
+  //console.log("_____data", data)
+  
 
   const { fetchAuthLocations, loading } = useAPI();
 
@@ -45,6 +60,14 @@ function StoreOwnerLayout({
     breakListProps, 
     serviceDurationListProps } = useAvailability()
 
+    //const { appointments, selectedAppointments, selectAppointments } = useAppointments( data.appointments )
+
+      //const {b} = useFoo(mergeLocationAppointments(data))
+
+     // console.log("b storeowner:",b)
+
+     // console.log("storeowner")
+
   const {
     locations, 
     selectedLocationId,
@@ -53,17 +76,15 @@ function StoreOwnerLayout({
     viewMapPreview,
     cancelMapPreview } = useLocationMap(data)
 
-  const {
-    selectedAppointments, 
-    selectedCalendarDayAppointments } = useCalendarAppointments()
-
+   
     useEffect( () => getData(), []);
     //for data fetching///////////////
 
-    useEffect( () => { 
+  useEffect( () => { 
   
       if(data[0]?.id){
         selectLocation(data[0].id)
+        setAppointments(data[0].appointments)
       }
       
    }, [data]);
@@ -78,10 +99,18 @@ function StoreOwnerLayout({
 
  function getData(){ 
   fetchAuthLocations({},(results)=>{
-    console.log("////////////////AUTH FETCH", data)
-      setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
+    
+
+  //a(results.posts)
+
+
+
+  setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
+
   })
-}
+ }
+
+
 
   const context = useAppContext();
 
@@ -107,20 +136,25 @@ function StoreOwnerLayout({
   context.selectLocation = selectLocation
   context.viewMapPreview = viewMapPreview
   context.cancelMapPreview = cancelMapPreview
-  context.selectCalendarDayAppointments = selectedCalendarDayAppointments
+  context.selectAppointments =  (appointments)=>selectAppointments(appointments)
 
   function getPageUI(selectedMode){     
     switch(selectedMode){
         case PageState.Map:{
           return{
-            leftPanel:<MyMap  {...{...getMapProps()}}/>,
-            rightPanel:<LocationList {...{locations, loading}}/>,
+            leftPanel:
+              <MyMap
+                posts={locations}
+                startZoom= {17} 
+                selected ={selectedLocationId} 
+                handleSelectedLocation={selectLocation}/>,
+            rightPanel:<LocationList locations={locations} {...{ loading}}/>,
           }
         }   
         case PageState.Calendar:{
           return{
-            leftPanel:<CalendarPanel appointments={data[0].appointments}/>,
-            rightPanel:<AppointmentList appointments={selectedAppointments} icons={data[0].icons}loading={loading}/>        
+            leftPanel:<CalendarPanel appointments={appointments}/>,
+            rightPanel:<AppointmentList appointments={selectedAppointments} loading={loading}/>        
           }  
         }  
         case PageState.Availability:

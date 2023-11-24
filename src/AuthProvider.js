@@ -1,6 +1,12 @@
 import {useEffect,createContext, useState, useContext } from "react";
 
+import {DOMAIN} from './constants'
+
 const AuthContext = createContext(null);
+
+function randomIntFromInterval(min, max) { // min and max included 
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
 
 export const AuthProvider = ({ 
   children, 
@@ -13,15 +19,10 @@ export const AuthProvider = ({
     const [token, setToken] = useState(null);
     const [config, setConfig] = useState(null);
 
+    console.log("/////configs: ", config)
+
     const [loadingUser, setLoadingUser] = useState(false);
     const [loadingConfigs, setLoadingConfigs] = useState(false);
-
-///////////////TEMP FETCHING CONFIGS HERE ///////////////////////////////
-
-    /* prevent the double useEffect call/double fetch() on first render */
-   // const dataFetchedRef = useRef(false);
-
-  // console.log("TOKEN IN AUTH PROVIDER: ", token)
 
     const success = (configs) => {
 
@@ -44,46 +45,9 @@ export const AuthProvider = ({
       setLoadingConfigs(false);
     }
 
-    /*
-    const _fetchClientConfigs = () =>{
-console.log("******************************")
-      fetchClientConfigs({},(configs)=>{
-        setConfig(configs); 
-        if(credentials){
-          internalLogOn(credentials, configs)
-        }else{
-          onLogInSuccess(null)
-        }
-      })
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-    */
     useEffect( () => {
-       // console.log("USEFFECT")
 
-      // _fetchClientConfigs()
-
-        /* this is the pattern utilized for all async calls in functional components 
-        prevents useEffect() from firing twice on init */
-         // if(dataFetchedRef.current) return
- 
           const dataFetch = async () => {    
-
-            function randomIntFromInterval(min, max) { // min and max included 
-              return Math.floor(Math.random() * (max - min + 1) + min)
-            }
-  
 
             setLoadingConfigs(true);
             setTimeout(async ()=>{
@@ -96,26 +60,10 @@ console.log("******************************")
          dataFetch();
       }, []);
 
-      /*
-      useEffect( () => {
-        console.log("configs ue")
-        if(credentials && config){ 
-          internalLogOn(credentials)
-        }
-
-          
-       }, [config, credentials]);
-       */
-
-
        async function internalLogOn(credentials, config){
 
-          function randomIntFromInterval(min, max) { // min and max included 
-            return Math.floor(Math.random() * (max - min + 1) + min)
-          }
-
           setLoadingUser(true)
-          const auth_path = `${config.DOMAIN}${config.ENDPOINT_URL_AUTH}`
+          const auth_path = `${DOMAIN}${config.ENDPOINT_URL_AUTH}`
 
           setTimeout(async ()=>{
             await startSession(credentials,auth_path)
@@ -132,7 +80,7 @@ console.log("******************************")
               onLogInFinally();
               
             })
-          }, randomIntFromInterval(1000, 5000))  
+          }, randomIntFromInterval(3000, 7000))  
        
        }
 
@@ -142,7 +90,7 @@ console.log("******************************")
 
     /* PUBLIC FUNCTIONS */
     const handleLogin = async (request, callback) => { 
-      const auth_path = `${config.DOMAIN}${config.ENDPOINT_URL_AUTH}`  
+      const auth_path = `${DOMAIN}${config.ENDPOINT_URL_AUTH}`  
       await startSession(request,auth_path).then(setToken, callback)
     };
   
@@ -154,7 +102,7 @@ console.log("******************************")
   
     const handleRegistration  = async (request, callback) => {
      // console.log("handle regis: ", request)
-      const register_path = `${config.DOMAIN}${config.ENDPOINT_URL_REGISTER}`
+      const register_path = `${DOMAIN}${config.ENDPOINT_URL_REGISTER}`
       await registerUser(request,register_path).then(setToken, callback)
     };
 
@@ -168,7 +116,7 @@ console.log("******************************")
       onRegistration: handleRegistration,
       isUser: ()=> token && token?.type === "USER",
       isStoreOwner: ()=> token && token?.type === "STOREOWNER",
-      isGuest: ()=> !!token
+      isGuest: ()=> !(!!token)
     };
   
    //console.log("auth provider:", value)

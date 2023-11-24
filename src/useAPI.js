@@ -5,6 +5,17 @@ const MAPS_API_KEY = `AIzaSyDqveqKgLlKG9gO1NCrs-iHmSjx10TUTkE`
 
 const MAPS_ENDPOINT = `https://maps.googleapis.com/maps/api/geocode/json`
 
+
+/*
+DOMAIN:"http://localhost:8080"
+ENDPOINT_URL_APPOINTMENT: "/appointment"
+ENDPOINT_URL_AUTH: "/auth"
+ENDPOINT_URL_LOCATION: "/locations"
+ENDPOINT_URL_REGISTER: "/register"
+ICONS: ['FaWrench', 'MdOutlineCarRepair', 'FaOilCan', 'MdLocalCarWash', 'GiMechanicGarage', 'FaCarBattery']
+STATUS: ['Approved', 'In Progress', 'Completed', 'Canceled']
+*/
+
 async function fetchWrapper(url, options){
     return new Promise( (resolve, reject) => { 
       fetch(url, options)
