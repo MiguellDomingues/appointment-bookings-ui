@@ -1,20 +1,16 @@
-import { useAuth, useConfig} from './AuthProvider'
+import { useAuth } from './AuthProvider'
 import { useState } from 'react'
 
-const MAPS_API_KEY = `AIzaSyDqveqKgLlKG9gO1NCrs-iHmSjx10TUTkE`
+import {
+  DOMAIN, 
+  ENDPOINT_URL_APPOINTMENT,
+  ENDPOINT_URL_LOCATION,
+  MAPS_API_KEY,
+  MAPS_ENDPOINT,
+} from './constants'
 
-const MAPS_ENDPOINT = `https://maps.googleapis.com/maps/api/geocode/json`
-
-
-/*
-DOMAIN:"http://localhost:8080"
-ENDPOINT_URL_APPOINTMENT: "/appointment"
-ENDPOINT_URL_AUTH: "/auth"
-ENDPOINT_URL_LOCATION: "/locations"
-ENDPOINT_URL_REGISTER: "/register"
-ICONS: ['FaWrench', 'MdOutlineCarRepair', 'FaOilCan', 'MdLocalCarWash', 'GiMechanicGarage', 'FaCarBattery']
-STATUS: ['Approved', 'In Progress', 'Completed', 'Canceled']
-*/
+const locations_path = `${DOMAIN}${ENDPOINT_URL_LOCATION}`
+const appointments_path = `${DOMAIN}${ENDPOINT_URL_APPOINTMENT}`
 
 async function fetchWrapper(url, options){
     return new Promise( (resolve, reject) => { 
@@ -30,20 +26,11 @@ async function fetchWrapper(url, options){
   
 function useAPI(){
 
-    const { config } = useConfig()
     const { token } = useAuth();
 
     const [loading, setLoading] = useState(false)
 
-    const locations_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_LOCATION}` : ''
-    const appointments_path = config ? `${config.DOMAIN}${config.ENDPOINT_URL_APPOINTMENT}` : ''
-
     function APIWrapper(CB, params, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){
-
-        if(!config){
-          console.log("no callout performed as no config is loaded")
-          return;
-        }
 
         setLoading(true)        //always set loading when callout begins
         params = Object.keys(params).map(e=>params[e])

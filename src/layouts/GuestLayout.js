@@ -1,4 +1,3 @@
-import { useConfig,} from '../AuthProvider'
 import {useState, useEffect, } from 'react'
 
 import MyMap from '../components/Map.tsx'
@@ -22,8 +21,6 @@ function GuestLayout({
   startingMode = PageState.Map
 }){
 
-    const { config } = useConfig();
-
     const {fetchGuestLocations, loading } = useAPI();
 
     const [data, setData] = useState([]);
@@ -34,7 +31,7 @@ function GuestLayout({
 
     const { filteredLocations,selectedLocationId,selectLocation,} = useLocationMap(data, selectedIcons)
 
-    useEffect( () => getData(), [config]);
+    useEffect( () => getData(), []);
 
     const context = useAppContext();
 

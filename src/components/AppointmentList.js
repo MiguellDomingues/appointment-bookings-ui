@@ -1,6 +1,8 @@
 import {useState, useEffect } from 'react'
 
-import { useAuth, useConfig } from '../AuthProvider'
+import { useAuth } from '../AuthProvider'
+
+import { STATUS } from '../constants'
 
 import { ActionButton }   from './widgets'
 
@@ -114,8 +116,6 @@ function StoreOwnerAppointment({
   id,
 }){
 
-  const { config } = useConfig(); 
-
   const { loading, editAppointmentStatus } = useAPI()
 
   const { refetchLocations } = useAppContext()
@@ -152,7 +152,7 @@ const editUI = ({appointee, appointment_types, start, end, status}) => {
       endCol:     <>{end}</>,
       statusCol:  <>
         <select name="status" value={status} onChange={handleChange}>
-          {config.STATUS.map((status,idx)=> <option key={idx} value={status}>{status}</option>) }                   
+          {STATUS.map((status,idx)=> <option key={idx} value={status}>{status}</option>) }                   
         </select>
       </>,
       actionCol:  <>

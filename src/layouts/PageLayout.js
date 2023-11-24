@@ -1,4 +1,4 @@
-import { useAuth,useConfig,} from '../AuthProvider'
+import { useAuth,} from '../AuthProvider'
 import LoadingOverlay from '../components/LoadingOverlay';
 import Header from '../components/Header';
 
@@ -7,15 +7,9 @@ function PageLayout({
     rightPanel = <></>,
   }){
   
-    const { loadingConfigs, } = useConfig();
     const { loadingUser  } = useAuth();
   
     return (<>  
-  
-        <LoadingOverlay 
-          isLoading={loadingConfigs} 
-          isFullscreen={true}
-          loadingText={"Loading Configurations..."}/>
   
         <LoadingOverlay 
           isLoading={loadingUser} 

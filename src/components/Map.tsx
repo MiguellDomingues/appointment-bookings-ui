@@ -24,6 +24,8 @@ import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import { createCustomEqual } from "fast-equals";
 import { isLatLngLiteral } from "@googlemaps/typescript-guards";
 
+import { MAPS_API_KEY } from '../constants'
+
 
     const render = (status: Status) => {
         return <h1>{status}</h1>;
@@ -149,7 +151,7 @@ import { isLatLngLiteral } from "@googlemaps/typescript-guards";
 
         return (
           <div style={{ display: "flex", height: "100%" , width: "100%"}}>
-            <Wrapper apiKey={"AIzaSyDqveqKgLlKG9gO1NCrs-iHmSjx10TUTkE"} render={render}>
+            <Wrapper apiKey={MAPS_API_KEY} render={render}>
               <Map
                 center={center}
                 //onClick={onClick}

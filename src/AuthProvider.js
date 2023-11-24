@@ -1,6 +1,6 @@
 import {useEffect,createContext, useState, useContext } from "react";
 
-import {DOMAIN} from './constants'
+import {DOMAIN,ENDPOINT_URL_AUTH,ENDPOINT_URL_REGISTER} from './constants'
 
 const AuthContext = createContext(null);
 
@@ -17,53 +17,30 @@ export const AuthProvider = ({
 }) => {
 
     const [token, setToken] = useState(null);
-    const [config, setConfig] = useState(null);
-
-    console.log("/////configs: ", config)
-
     const [loadingUser, setLoadingUser] = useState(false);
-    const [loadingConfigs, setLoadingConfigs] = useState(false);
-
-    const success = (configs) => {
-
-     // console.log("CONFIG OBJECT: ", configs)
-      setConfig(configs); 
-      if(credentials){
-        internalLogOn(credentials, configs)
-      }else{
-        onLogInSuccess(null)
-      }
-   
-    }
-
-    const failure = (r) => {
-     // console.log("error FETCH CONFIG", r.reason) 
-     // setConfig(r);    
-    }
-
-    const finish = (r) => {
-      setLoadingConfigs(false);
-    }
-
+  
     useEffect( () => {
 
-          const dataFetch = async () => {    
+      const dataFetch = async () => {    
 
-            setLoadingConfigs(true);
-            setTimeout(async ()=>{
-              await _fetchClientConfigs(null).then(success, failure).finally(finish)  
-            }, randomIntFromInterval(1000, 5000))  
-           
-         };
-  
-         // dataFetchedRef.current = true;
-         dataFetch();
-      }, []);
+        setTimeout(async ()=>{
+        
+          if(credentials){
+            internalLogOn(credentials)
+          }else{
+            onLogInSuccess(null)
+          }
+        }, randomIntFromInterval(1000, 5000))  
+        
+      };
 
-       async function internalLogOn(credentials, config){
+      dataFetch();
+    }, []);
+
+       async function internalLogOn(credentials){
 
           setLoadingUser(true)
-          const auth_path = `${DOMAIN}${config.ENDPOINT_URL_AUTH}`
+          const auth_path = `${DOMAIN}${ENDPOINT_URL_AUTH}`
 
           setTimeout(async ()=>{
             await startSession(credentials,auth_path)
@@ -90,7 +67,7 @@ export const AuthProvider = ({
 
     /* PUBLIC FUNCTIONS */
     const handleLogin = async (request, callback) => { 
-      const auth_path = `${DOMAIN}${config.ENDPOINT_URL_AUTH}`  
+      const auth_path = `${DOMAIN}${ENDPOINT_URL_AUTH}`  
       await startSession(request,auth_path).then(setToken, callback)
     };
   
@@ -102,15 +79,15 @@ export const AuthProvider = ({
   
     const handleRegistration  = async (request, callback) => {
      // console.log("handle regis: ", request)
-      const register_path = `${DOMAIN}${config.ENDPOINT_URL_REGISTER}`
+      const register_path = `${DOMAIN}${ENDPOINT_URL_REGISTER}`
       await registerUser(request,register_path).then(setToken, callback)
     };
 
     const value = {
       token,
-      config,
+      //config,
       loadingUser: loadingUser,
-      loadingConfigs: loadingConfigs,
+     // loadingConfigs: loadingConfigs,
       onLogin: handleLogin,
       onLogout: handleLogout,
       onRegistration: handleRegistration,
@@ -132,9 +109,7 @@ export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-export const useConfig = () => {
-  return useContext(AuthContext);
-};
+
 
 
 
@@ -254,7 +229,7 @@ const START_SESSION_FAILURE = {
   /************************************************************************************************/
 
 
-  /***************************FETCH CONFIGS***********************/
+  /***************************FETCH CONFIGS**********************
 
 const ENDPOINT_URL_CONFIGS = 'http://localhost:8080/configs'
 
@@ -282,6 +257,8 @@ const _fetchClientConfigs = (key) => {
     });
   });
 }
+
+*/
 
 
 
