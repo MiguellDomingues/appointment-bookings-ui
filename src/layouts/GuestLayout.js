@@ -27,7 +27,13 @@ function GuestLayout({
   startingMode = PageState.Map
 }){
 
-    const {fetchGuestLocations, loading } = useAPI(API.fetchGuestLocations);
+    const {
+      fetchGuestLocations, 
+      loading 
+    } = useAPI(
+        API.fetchGuestLocations,
+        (results)=>setData([...results.posts])
+      );
 
     const [data, setData] = useState([]);
 
@@ -64,9 +70,7 @@ function GuestLayout({
 
 
     function getData(){
-      fetchGuestLocations({},(results)=>{
-        setData([...results.posts]);
-      })
+      fetchGuestLocations()
     }
 
 
