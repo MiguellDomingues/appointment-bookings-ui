@@ -2,7 +2,7 @@ import {useState, useEffect } from 'react'
 
 import { useAuth } from '../AuthProvider'
 
-import useTestAPI from '../useAPI'
+import useAPI from '../useAPI'
 import API from '../API'
 
 import {IconList, getIcons} from './IconList'
@@ -97,13 +97,24 @@ function LocationPanel({ //a panel encapsulates the different UI states for a lo
 
     const { id } = location;
 
-    const { selectLocation, } = useAppContext();
+    const { selectLocation, refetchLocations} = useAppContext();
 
     //const _isLocationSelected = isLocationSelected(id)
 
     //const {loading, editLocation, postLocation } = useAPI();
 
-    const {loading, editLocation, } = useTestAPI(API.editLocation);
+    //const {loading, editLocation, } = useAPI(API.editLocation);
+
+    const {
+        loading, 
+        editLocation,
+     } = useAPI(
+            API.editLocation, 
+            ()=>{
+                refetchLocations()
+                setMode(LocationPanelState.Card)
+            }
+        );
 
     //useEffect(()=>setMode(startingMode), [isLocationSelected]);// selectedLocationId
     function getUI(selectedMode){
@@ -244,12 +255,32 @@ function LocationForm({
  // LocationFormState = ""
  }){
 
-    const { refetchLocations, viewMapPreview,cancelMapPreview } = useAppContext();
+    const {viewMapPreview,cancelMapPreview } = useAppContext();
     const {selectedIcons,toggleIcon} = useIcons(currentIcons);
-    const {loading, fetchMapInfo} = useTestAPI(API.fetchMapInfo);
+    //const {loading, fetchMapInfo} = useAPI(API.fetchMapInfo);
 
     const [ formFields, setFormFeilds ] = useState({...form})
     const areFieldsInvalid = () => !(formFields.info.trim() && formFields.address.trim() && selectedIcons.length > 0)
+
+    const {
+        loading, 
+        fetchMapInfo,
+     } = useAPI(
+            API.fetchMapInfo, 
+            ({ success, results, status})=>{
+                console.log(success)
+                console.log(results)
+                console.log(status)
+    
+                if(!success || status !== "OK"){
+                    throw new Error(" fetchMapInfo API error")          
+                }else{
+                    viewMapPreview(results[0].geometry.location, formFields.info, formFields.title)
+                }
+     
+            },
+            (err)=>{ console.log("error callback map: ", err)}
+        );
 
     //console.log(form)
     
@@ -266,23 +297,8 @@ function LocationForm({
         const province = "british columbia"
         const country = "canada"
         const postalCode = "V3W 0R8"
-        //const title = "My Title"
 
-
-        fetchMapInfo({
-            streetNumber,city,province,country,postalCode
-        },({ success, results, status})=>{
-            console.log(success)
-            console.log(results)
-            console.log(status)
-
-            if(!success || status !== "OK"){
-                throw new Error(" fetchMapInfo API error")          
-            }else{
-                viewMapPreview(results[0].geometry.location, formFields.info, formFields.title)
-            }
- 
-        }, (err)=>{ console.log("error callback: ", err)})
+        fetchMapInfo(streetNumber,city,province,country,postalCode)
     }
 
     function handleChange(e){
@@ -293,18 +309,8 @@ function LocationForm({
 
     function handleSubmit(e){
         e.preventDefault();
-        //console.log(formFields, selectedIcons);
-        const submitObject = {...formFields, icons: [...selectedIcons]}
-        console.log("loc form: ",formFields)
-        
-        submitForm (
-            { submitObject }, 
-            ()=>{
-                refetchLocations()
-                cancelForm()
-        })
-
-        
+        console.log("loc form: ",formFields)   
+        submitForm ({ ...formFields, icons: [...selectedIcons] })     
     }   
 
     return(<>

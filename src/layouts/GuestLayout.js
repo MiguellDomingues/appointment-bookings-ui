@@ -1,5 +1,7 @@
 import {useState, useEffect, } from 'react'
 
+import {useAuth} from '../AuthProvider'
+
 import MyMap from '../components/Map.tsx'
 import PageLayout from '../layouts/PageLayout';
 import LocationList from '../components/LocationList'
@@ -7,23 +9,25 @@ import LocationList from '../components/LocationList'
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
 
-import useTestAPI from '../useAPI.js'
+import useAPI from '../useAPI.js'
 import API from '../API'
 
 import {useAppContext } from '../AppContextProvider'
 
 import '../styles.css';
 
+
 const PageState = Object.freeze({
   Map: "Map",
-  Calendar: "Calendar"
+  Registration: "Registration",
+  LogOn: "LogOn"
 });
 
 function GuestLayout({
   startingMode = PageState.Map
 }){
 
-    const {fetchGuestLocations, loading } = useTestAPI(API.fetchGuestLocations);
+    const {fetchGuestLocations, loading } = useAPI(API.fetchGuestLocations);
 
     const [data, setData] = useState([]);
 
@@ -42,6 +46,22 @@ function GuestLayout({
     context.selectLocation = selectLocation
     context.selectedIcons =  selectedIcons
     context.toggleIcon =  toggleIcon
+
+    context.links = [
+      {
+        name: "Home",
+        handler: ()=>setMode(PageState.Map)
+      },
+      {
+        name: "Log In",
+        handler: ()=>setMode(PageState.LogOn)
+      },
+      {
+        name: "Register",
+        handler: ()=>setMode(PageState.Registration)
+      },
+    ]
+
 
     function getData(){
       fetchGuestLocations({},(results)=>{
@@ -65,7 +85,31 @@ function GuestLayout({
                   <LocationList {...{loading}}
                   locations={filteredLocations}/>            
               </>} 
-          }   
+          }
+          case PageState.LogOn:{
+            return {
+              leftPanel:<>
+                <MyMap 
+                  posts={filteredLocations} 
+                  selected={selectedLocationId} 
+                  handleSelectedLocation={selectLocation} /> 
+              </>,
+              rightPanel: <>         
+                  <Authentication/>             
+              </>} 
+          }
+          case PageState.Registration:{
+            return {
+              leftPanel:<>
+                <MyMap 
+                  posts={filteredLocations} 
+                  selected={selectedLocationId} 
+                  handleSelectedLocation={selectLocation} /> 
+              </>,
+              rightPanel: <>         
+                            Register  
+              </>} 
+          }      
           default: return <></>
       }
     }
@@ -79,4 +123,26 @@ function GuestLayout({
 
 export default GuestLayout
 
+function Authentication(){
 
+  const {setToken, token} = useAuth()
+
+  const {startSession, loading } = useAPI(
+    API.startSession, 
+    (result)=>{
+      console.log("log in user:", result)
+  });
+
+
+  const handleLogInUser = () =>{
+    startSession()
+  }
+
+  return(<>
+      <button onClick={e=>handleLogInUser()}>Log on as User</button>
+      <button onClick={e=>console.log("log in storeowner")}>Log on as Store Owner</button>
+  </>);
+}
+
+
+//credentials: {username: "a", password: "a"} ,

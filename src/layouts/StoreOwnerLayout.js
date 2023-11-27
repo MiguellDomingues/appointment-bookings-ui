@@ -19,7 +19,8 @@ import AppointmentList from '../components/AppointmentList';
 import useAvailability from '../hooks/useAvailability';
 import useLocationMap from '../hooks/useLocationMap';
 
-import useTestAPI from '../useAPI.js'
+import useAPI from '../useAPI.js'
+
 import API from '../API'
 
 import '../styles.css';
@@ -44,7 +45,14 @@ function StoreOwnerLayout({
 
 
 
-  const { fetchAuthLocations, loading } = useTestAPI(API.fetchAuthLocations);
+  //const { fetchAuthLocations, loading } = useAPI(API.fetchAuthLocations);
+
+  const { 
+    fetchAuthLocations, 
+    loading
+   } = useAPI(
+      API.fetchAuthLocations, 
+      (results)=>setData([{...results.posts[0]}]));
 
   const {
     calendarProps, 
@@ -89,18 +97,15 @@ function StoreOwnerLayout({
     
  }, [mode]); //if the user navigates to a new page, close the map preview
 
+ function getData(){ fetchAuthLocations()}
+
+ /*
  function getData(){ 
-  fetchAuthLocations({},(results)=>{
-    
-
-  //a(results.posts)
-
-
-
-  setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
-
+    fetchAuthLocations({},(results)=>{
+      setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
   })
  }
+ */
 
 
 

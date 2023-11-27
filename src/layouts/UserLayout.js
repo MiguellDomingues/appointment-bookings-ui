@@ -10,8 +10,7 @@ import { BodyPanel,BodyPanelState} from '../components/BodyPanel'
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
 
-import useTestAPI from '../useAPI.js'
-
+import useAPI from '../useAPI.js'
 import API from '../API'
 
 import {useAppContext} from '../AppContextProvider'
@@ -58,11 +57,23 @@ function UserLayout({
 
   const [allAppointments, setAllAppointments] = useState([]);
 
-  const { fetchAuthLocations, loading } = useTestAPI(API.fetchAuthLocations);
+  //const { fetchAuthLocations, loading } = useAPI(API.fetchAuthLocations);
+
+  const { 
+    fetchAuthLocations, 
+    loading
+   } = useAPI(
+      API.fetchAuthLocations, 
+      (results)=>setData([...results.posts])
+   )
+
+    
+
+
   const { selectedIcons, toggleIcon} = useIcons();
   const { filteredLocations, locations, selectedLocationId, selectLocation,} = useLocationMap(data, selectedIcons)
 
-  useEffect( () => { setAllAppointments(mergeLocationAppointments(data)) }, [data]);
+  //useEffect( () => { setAllAppointments(mergeLocationAppointments(data)) }, [data]);
 
 
   useEffect( () => getData(), []);
@@ -85,11 +96,7 @@ function UserLayout({
     },
   ]
 
-  function getData(){ 
-      fetchAuthLocations({},(results)=>{
-          setData([...results.posts]);
-      })
-  }
+  function getData(){ fetchAuthLocations()}
 
   let { appointments, icons } =  getSelectedLocationAppointmentsIcons(data, selectedLocationId);
 

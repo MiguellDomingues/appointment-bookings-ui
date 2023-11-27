@@ -6,7 +6,10 @@ function getRandom(min, max) {
 }
 
 function useAPI(
-    callOutFunction = async () => {}
+    callOutFunction = async () => {}, //the fetch() callout
+    successCB = ()=>{}, 
+    errorCB = ()=>{}, 
+    finallyCB = ()=>{}
 ){
 
     if(callOutFunction.name === "callOutFunction"){
@@ -18,13 +21,15 @@ function useAPI(
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(false)
 
-    function APIWrapper(CB, params, successCB = ()=>{}, errorCB = ()=>{}, finallyCB = ()=>{}){
-
+    function APIWrapper(CB, params = []){
         setLoading(true)        //always set loading when callout begins
-        params = Object.keys(params).map(e=>params[e])
-        console.log("KEY: ", token?.type, token?.key)
+
+        if(token?.key){ //if the user is authenticated, append the key to the end of the params list
+            params[params.length] = token.key
+        }
+
         setTimeout(async ()=>{   
-            CB(token?.key, ...params).then((result)=>{
+            CB(...params).then((result)=>{ // (...params) means to spread the params array as arguments into the callback 
                 setError(false)     //successfull callouts will clear the previous err
                 successCB(result)
             }).catch((err)=>{
@@ -39,11 +44,11 @@ function useAPI(
         }, getRandom(1000, 3000))  
     }
 
-    const invoke = (params={}, ...args) => 
-        APIWrapper(callOutFunction , params, ...args)
+    //(...params) means to collect the 0 or more arguments into an array 'params'
+    const invoke = (...params) => APIWrapper(callOutFunction , params) //pass params arr to APIWrapper
 
     return{
-        [callOutFunction.name]: invoke, 
+        [callOutFunction.name]: invoke, //re-alias invoke to the name of the original function that is being referenced from API.js
         loading, 
         error,     
     }

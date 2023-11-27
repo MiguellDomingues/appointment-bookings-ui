@@ -13,7 +13,7 @@ import LoadingOverlay         from './LoadingOverlay'
 import useIcons               from '../hooks/useIcons'
 import {useToggleUI,ToggleUIState }             from '../hooks/useToggleUI'
 
-import useTestAPI from '../useAPI'
+import useAPI from '../useAPI'
 import API from '../API'
 
 
@@ -110,19 +110,24 @@ function StoreOwnerAppointment({
   id,
 }){
 
-  const { loading, editAppointmentStatus } = useTestAPI(API.editAppointmentStatus)
+  //const { loading, editAppointmentStatus } = useAPI(API.editAppointmentStatus)
+
+  const { 
+    loading, 
+    editAppointmentStatus 
+  } = useAPI(
+      API.editAppointmentStatus,
+      (result)=>{
+        updateForm({ status: result.appointment.status }) 
+        showRead()
+        refetchLocations();
+      },
+      (err)=>{console.log(err); })
 
   const { refetchLocations } = useAppContext()
 
   function handleEditAppointmentStatus(id, status){
-    editAppointmentStatus({id, status},
-      (result)=>{
-        updateForm({ status }) 
-        showRead()
-        refetchLocations();
-      },
-      (err)=>{console.log(err); },
-    )
+    editAppointmentStatus(id, status)
 }
 
   const readOnlyUI = ({appointee, appointment_types, start, end, status}) => ({
@@ -212,35 +217,42 @@ function UserAppointment({
 
   useEffect( ()=>updateForm({status})  , [status]);
 
-  const { loading: loadingPostAppointment, postAppointment } = useTestAPI(API.postAppointment)
-  const { loading: loadingDeleteAppointment, deleteAppointment } = useTestAPI(API.deleteAppointment)
+  const { 
+    loading: loadingPostAppointment, 
+    postAppointment 
+  } = useAPI(
+        API.postAppointment,
+        (result)=>{
+          console.log("postAppointment res: ", result)
+          clearIcons()
+          updateForm({ date, start, end, }) 
+          showEdit()
+          refetchLocations();
+        }
+      )
+
+
+  const { 
+    loading: loadingDeleteAppointment, 
+    deleteAppointment
+   } = useAPI(
+        API.deleteAppointment,
+        (result)=>refetchLocations()
+      )
 
   const { refetchLocations,selectedLocationId, } = useAppContext()
 
-  const  handleDeleteAppointment =() =>{
-    deleteAppointment({id},(result)=>{refetchLocations()})
-  }
+  const  handleDeleteAppointment =() =>{deleteAppointment(id)}
 
   function handlePostAppointment(formFields){
 
-    const new_appointment = {
+    postAppointment({
       loc_id: selectedLocationId,
       start_time: formFields.start,
       end_time: formFields.end,
       apt_types: formFields.selectedIcons,
       date: formFields.date
-    }
-
-    postAppointment({new_appointment},
-      (result)=>{
-        console.log(result)
-        clearIcons()
-        updateForm({ date, start, end, }) 
-        showEdit()
-        refetchLocations();
-      },
-      (err)=>{},
-    )
+    })
 
   }
 
