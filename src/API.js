@@ -14,20 +14,22 @@ import {
   const locations_path = `${DOMAIN}${ENDPOINT_URL_LOCATION}`
   const appointments_path = `${DOMAIN}${ENDPOINT_URL_APPOINTMENT}`
   const availability_workingplan_path = `${DOMAIN}${ENDPOINT_WORKING_PLANS}`
+  const availability_breaks_path = `${DOMAIN}${ENDPOINT_BREAKS}`
+  const availability_servicedurations_path = `${DOMAIN}${ENDPOINT_SERVICE_DURATIONS}`
   const auth_path = `${DOMAIN}${ENDPOINT_URL_AUTH}`
 
 async function fetchWrapper(url, options){
     return new Promise( (resolve, reject) => { 
       fetch(url, options)
-        .then(((res) => res.json()))
-          .then((data) => {resolve({success: true, ...data })})
-          .catch((error) => {reject({success: false, reason: error})});
+        .then(res=>res.json())
+          .then(data => resolve({success: true, ...data }))
+            .catch(error=>reject({success: false, reason: error}));
   });}
 
 const API = {
     fetchGuestLocations: async () => fetchWrapper(locations_path, null),
 
-    fetchAuthLocations : async (key) => fetchWrapper(`${locations_path}?key=${key}`, {headers: {key: key}}),
+    fetchAuthLocations : async (key) => fetchWrapper(`${locations_path}`, {headers: {key: key}}),
 
     editLocation : async (location,key) => {
         //console.log("el: ", location)
@@ -49,7 +51,7 @@ const API = {
         }})},
 
     editAppointmentStatus : async (apt_id, new_status,key) => 
-        fetchWrapper(`${appointments_path}?key=${key}`,  {
+        fetchWrapper(`${appointments_path}`,  {
             method: 'PATCH',
             body: JSON.stringify({
                 storeowner_id:    key, 
@@ -62,7 +64,7 @@ const API = {
         }}),
 
     postAppointment : async (appointment,key) => 
-        fetchWrapper(`${appointments_path}?key=${key}`,  {
+        fetchWrapper(`${appointments_path}`,  {
             method: 'POST',
             body: JSON.stringify({
                 loc_id:     appointment.loc_id,
@@ -78,7 +80,7 @@ const API = {
         }}),
 
     deleteAppointment : async (appointment_id,key) => 
-        fetchWrapper(`${appointments_path}?key=${key}`,  {
+        fetchWrapper(`${appointments_path}`,  {
             method: 'DELETE',
             body: JSON.stringify({
                 apt_id:     appointment_id,
@@ -91,16 +93,38 @@ const API = {
 
     fetchMapInfo : async (streetNumber,city,province,country,postalCode) => 
         fetchWrapper(`${MAPS_ENDPOINT}?key=${MAPS_API_KEY}&address=${streetNumber}%20${city}%20${province}%20${country}%20${postalCode}`, {}),
-    fetchWorkingPlans : async ()=> fetchWrapper(availability_workingplan_path, null),
+
+    fetchWorkingPlans : async (key)=> fetchWrapper(availability_workingplan_path, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json',key: key}
+    }),
+
+    fetchBreaks : async (key)=> fetchWrapper(availability_breaks_path, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json',key: key}
+    }),
+
+    fetchServiceDurations : async (key)=> fetchWrapper(availability_servicedurations_path, {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json',key: key}
+    }),
+
     
     
-    startSession : async (user_name, password)=>{
-      return fetchWrapper(auth_path, {
+    
+    startSession : async (user_name, password)=>
+       fetchWrapper(auth_path, {
         method: 'POST',
         body: JSON.stringify({user_name: user_name, password: password}),
         headers: {
         'Content-Type': 'application/json',
-  }})},
+      }}),
+
+      endSession : async (key)=>
+       fetchWrapper(auth_path, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json',key: key}
+      }),
   }
 
 export default API

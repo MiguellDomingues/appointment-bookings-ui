@@ -9,17 +9,17 @@ function useAPI(
     callOutFunction = async () => {}, //the fetch() callout
     successCB = ()=>{}, 
     errorCB = ()=>{}, 
-    finallyCB = ()=>{}
+    finallyCB = ()=>{},
 ){
 
     if(callOutFunction.name === "callOutFunction"){
         throw new Error("Error in useAPI; pass a function reference from API.js")
     }
-   
+
     const { token } = useAuth();
 
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(false)
+    const [error, setError] = useState(null)
 
     function APIWrapper(CB, params = []){
         setLoading(true)        //always set loading when callout begins
@@ -30,11 +30,11 @@ function useAPI(
 
         setTimeout(async ()=>{   
             CB(...params).then((result)=>{ // (...params) means to spread the params array as arguments into the callback 
-                setError(false)     //successfull callouts will clear the previous err
+                setError(null)     //successfull callouts will clear the previous err
                 successCB(result)
             }).catch((err)=>{
                 console.log("ERROR: ", err)
-                setError(true)     
+                setError(err)     
                 errorCB(err)
             }).finally(()=>{
                 setLoading(false)  //always unset loading when callout ends
