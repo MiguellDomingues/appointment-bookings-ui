@@ -15,31 +15,31 @@ import TimeGrid from "react-big-calendar/lib/TimeGrid";
 moment.locale("en-CA");
 const localizer = momentLocalizer(moment);
 
-const mockWorkingPlan = [
+const defaultWorkingPlan = [
     {
         day: "Monday",
-        start: "08:00",
-        end:   "16:00",
+        start: "",
+        end:   "",
     },
     {
         day: "Tuesday",
-        start: "06:00",
-        end:   "16:00",
+        start: "",
+        end:   "",
     },
     {
         day: "Wednesday",
-        start: "08:00",
-        end:   "18:00",
+        start: "",
+        end:   "",
     },
     {
         day: "Thursday",
-        start: "08:00",
-        end:   "16:00",
+        start: "",
+        end:   "",
     },
     {
         day: "Friday",
-        start: "12:15",
-        end:   "14:30"
+        start: "",
+        end:   ""
     },
     {
         day: "Saturday",
@@ -53,40 +53,7 @@ const mockWorkingPlan = [
     },
 ]
   
-let mockBreaks = [
-    {
-        days: ["Mon", "Tue", "Wed", "Thu","Fri"],
-        start: "10:15",
-        end: "10:30"
-    },
-    {
-        days: ["Mon", "Tue", "Wed", "Thu",],
-        start: "12:00",
-        end: "13:00"
-    },
-    {
-        days: ["Fri"],
-        start: "11:00",
-        end: "11:30"
-    },
-]
-  
-const mockServiceDurations = [
-    {
-       type: "MdOutlineCarRepair",
-       duration: "45"
-    },
-    {
-        type: "FaWrench",
-        duration: "25"
-     },
-     {
-        type: "FaOilCan",
-        duration: "30"
-     }, 
-]
-
-  ///////////////////////////////visual scedualer/////////////////////////////////////
+///////////////////////////////visual scedualer/////////////////////////////////////
   
 function createCloseIntervals(workingPlan = []){
   
@@ -197,6 +164,9 @@ function createCloseIntervals(workingPlan = []){
 }
 
 function createBreakIntervals(breaks = []){
+
+    console.log("cbi ",breaks)
+
     const daysOfTheWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     const breakIntervals = []
@@ -236,20 +206,43 @@ function createBreakIntervals(breaks = []){
 
 function useAvailability(){
 
+   
+    const [workingPlan, setWorkingPlan] = useState([...defaultWorkingPlan]) //...mockWorkingPlan
 
-    const { fetchWorkingPlans, loading } = useAPI(API.fetchWorkingPlans);
+    const [serviceDurations, setServiceDurations] = useState([])
 
- 
-    
-       
-    useEffect( ()=>{
-        //fetchWorkingPlans({}, ()=>{console.log("successfully invoked fetchWorkingPlans")})
-    }, []);
+    const [breaks, setWorkingBreaks] = useState([])
 
+    const {closeIntervals, startMin, endMax, timeStep} =  useMemo( ()=>createCloseIntervals(workingPlan), [workingPlan])
+    const breakIntervals =  useMemo( ()=>createBreakIntervals(breaks), [breaks])
 
+    console.log("//////fetch working plan/////", workingPlan)
+    console.log("//////fetch breaks/////", breaks)
+    console.log("//////fetchServiceDurations/////", serviceDurations)
+
+    const { 
+        fetchWorkingPlans, 
+        loading: loadingFetchWorkingPlans 
+    } = useAPI(API.fetchWorkingPlans,({workingPlan})=>setWorkingPlan([...workingPlan]));
+
+    const { 
+        fetchBreaks, 
+        loading: loadingFetchBreaks
+    } = useAPI(API.fetchBreaks,({breaks})=>setWorkingBreaks([...breaks]));
+
+    const { 
+        fetchServiceDurations, 
+        loading: loadingFetchServiceDurations
+    } = useAPI(API.fetchServiceDurations,({serviceDurations})=>setServiceDurations([...serviceDurations]));
+
+    useEffect(()=>{
+        fetchWorkingPlans()
+        fetchBreaks()
+        fetchServiceDurations()
+    }, [])
 
      /////////////////////service durations///////////////////////////// 
-     const [serviceDurations, setServiceDurations] = useState([...mockServiceDurations])
+     
   
      function updateServiceDuration(id, duration){
          serviceDurations[id].duration = duration
@@ -258,8 +251,7 @@ function useAvailability(){
      ///////////////////////////////////////////////////////////
 
     /////////////////////working plan/////////////////////////////
-    const [workingPlan, setWorkingPlan] = useState([...mockWorkingPlan])
-  
+    
     function updateWorkingPlanDay(day, start, end){
         setWorkingPlan((workingPlan)=>[ ...workingPlan.map((wp)=>wp.day===day ? {day, start, end} : wp)  ])
     }
@@ -268,13 +260,7 @@ function useAvailability(){
   
   
     /////////////////////breaks/////////////////////////////
-    const [breaks, setWorkingBreaks] = useState(()=>{
-        //console.log("mockBreaks" , mockBreaks)
-        const  _mockBreaks = mockBreaks.map((b)=>( {...b, id: nanoid() } )) //temp
-        return [..._mockBreaks]
-    })
-
-
+   
     function deleteWorkingBreak(id){
         setWorkingBreaks((workingBreaks)=>[...(workingBreaks.filter(wb=>wb.id!==id) )])
     }
@@ -293,8 +279,7 @@ function useAvailability(){
         dayFormat: (date, culture, localizer) =>localizer.format(date, 'ddd', culture), //change the day columns to only display the day of the week
     }
 
-    const {closeIntervals, startMin, endMax, timeStep} =  useMemo( ()=>createCloseIntervals(workingPlan), [workingPlan])
-    const breakIntervals =  useMemo( ()=>createBreakIntervals(breaks), [breaks])
+   
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
