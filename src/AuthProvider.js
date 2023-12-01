@@ -1,24 +1,26 @@
 import {useEffect,createContext, useState, useContext } from "react";
-
+import { useNavigate } from "react-router-dom";
 import {DOMAIN,ENDPOINT_URL_AUTH,ENDPOINT_URL_REGISTER} from './constants'
 
 const AuthContext = createContext(null);
+
+const AuthUserTypes = Object.freeze({
+  User: "USER",
+  StoreOwner: "STOREOWNER"
+});
+
 
 function randomIntFromInterval(min, max) { // min and max included 
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-export const AuthProvider = ({ 
-  children, 
-  credentials = null, 
-  onLogInSuccess=()=>{} ,
-  onLogInError =()=>{} ,
-  onLogInFinally =()=>{},
-}) => {
+export const AuthProvider = ({children}) => {
 
     const [token, setToken] = useState(null);
-    const [loadingUser, setLoadingUser] = useState(false);
-  
+    //const [loadingUser, setLoadingUser] = useState(false);
+    const navigate = useNavigate();
+  console.log("authprovider rerender ", token)
+    /*
     useEffect( () => {
 
       const dataFetch = async () => {    
@@ -36,7 +38,25 @@ export const AuthProvider = ({
 
       dataFetch();
     }, []);
+*/
+    
+    useEffect( () => {
 
+      console.log("AUTO NAVIGATING: ", token)
+      if(!token){
+        navigate("/", { replace: true} )
+      }else if(token.type === AuthUserTypes.User){
+        navigate(`/${AuthUserTypes.User}`, { replace: true})
+      }else if(token.type === AuthUserTypes.StoreOwner){
+        navigate(`/${AuthUserTypes.StoreOwner}`, { replace: true})
+      }
+
+    }, [token]);
+
+  
+
+
+/* 
        async function internalLogOn(credentials){
 
           setLoadingUser(true)
@@ -65,15 +85,14 @@ export const AuthProvider = ({
 
       //////////////TEMP FETCHING CONFIGS HERE ///////////////////////////////END
 
-    /* PUBLIC FUNCTIONS */
+    PUBLIC FUNCTIONS
     const handleLogin = async (request, callback) => { 
       const auth_path = `${DOMAIN}${ENDPOINT_URL_AUTH}`  
       await startSession(request,auth_path).then(setToken, callback)
     };
   
     const handleLogout = () => {
-     // console.log("handle logout")
-      //endSession()...
+      
       setToken(null);
     };
   
@@ -82,18 +101,23 @@ export const AuthProvider = ({
       const register_path = `${DOMAIN}${ENDPOINT_URL_REGISTER}`
       await registerUser(request,register_path).then(setToken, callback)
     };
+     */
 
     const value = {
       token,
       //config,
-      loadingUser: loadingUser,
+     // loadingUser: loadingUser,
      // loadingConfigs: loadingConfigs,
-      onLogin: handleLogin,
-      onLogout: handleLogout,
-      onRegistration: handleRegistration,
-      isUser: ()=> token && token?.type === "USER",
-      isStoreOwner: ()=> token && token?.type === "STOREOWNER",
-      isGuest: ()=> !(!!token)
+      setToken: (newToken)=>setToken(newToken),
+      unsetToken:()=>setToken(null),
+      //onLogin: handleLogin,
+      //onLogout: handleLogout,
+     // onRegistration: handleRegistration,
+      isAuth: ()=> !!(token),
+      isUser: ()=> token?.type === AuthUserTypes.User,
+      isStoreOwner: ()=> token?.type === AuthUserTypes.StoreOwner,
+      isGuest: ()=> !(!!token),
+      getUserType: ()=> token?.type,
     };
   
    //console.log("auth provider:", value)

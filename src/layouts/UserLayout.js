@@ -1,11 +1,15 @@
 import {useState, useEffect, useMemo } from 'react'
 
-import { MemoryRouter, Route, Routes, Navigate,Link } from "react-router";
+import { useLocation } from "react-router-dom";
+
+import { useAuth } from '../AuthProvider';
 
 import PageLayout from '../layouts/PageLayout';
 
 import MyMap from '../components/Map.tsx'
-import { BodyPanel,BodyPanelState} from '../components/BodyPanel'
+
+import LocationList from '../components/LocationList'
+import AppointmentList from '../components/AppointmentList'
 
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
@@ -15,12 +19,9 @@ import API from '../API'
 
 import {useAppContext} from '../AppContextProvider'
 
-import '../styles.css';
+import { Routes, Route, useNavigate  } from "react-router-dom";
 
-const PageState = Object.freeze({
-  Map: "Map",
-  Calendar: "Calendar"
-});
+import '../styles.css';
 
 
 /*merge the appointments from each location into a single array, 
@@ -48,14 +49,20 @@ function getSelectedLocationAppointmentsIcons(locations = [], selected_location_
 
 
 
-function UserLayout({
-  startingMode = PageState.Map
-}){
+function UserLayout(){
 
   const [data, setData] = useState([]);
-  const [ mode, setMode ] = useState(  startingMode );
+
+
+  const loc = useLocation()
+
+  console.log("//////// ", loc)
+
+  const { unsetToken } = useAuth()
 
   const [allAppointments, setAllAppointments] = useState([]);
+
+  const navigate = useNavigate();
 
   //const { fetchAuthLocations, loading } = useAPI(API.fetchAuthLocations);
 
@@ -64,10 +71,10 @@ function UserLayout({
     loading
    } = useAPI(
       API.fetchAuthLocations, 
-      (results)=>setData([...results.posts])
+      (results)=>setData([...results.posts]),
+      (err)=>{},
+      ()=>{},
    )
-
-    
 
 
   const { selectedIcons, toggleIcon} = useIcons();
@@ -91,8 +98,8 @@ function UserLayout({
 
   context.links = [
     {
-      name: "Location",
-      handler: ()=>setMode(PageState.Map)
+      name: "Home",
+      link: "/USER"
     },
   ]
 
@@ -100,38 +107,34 @@ function UserLayout({
 
   let { appointments, icons } =  getSelectedLocationAppointmentsIcons(data, selectedLocationId);
 
-  function getPageUI(selectedMode){    
-    switch(selectedMode){
-        case PageState.Map:{
-          return {
-            leftPanel:<>
-              <MyMap 
-                posts={filteredLocations} 
-                selected={selectedLocationId} 
-                handleSelectedLocation={selectLocation} /> 
-            </>,
-            rightPanel: <>
-                <BodyPanel 
-                  startingMode={BodyPanelState.Location}
-                  filteredLocations={filteredLocations}
-                  appointments={appointments}
-                  isToggleable={true}
-                  icons={icons}
-                  loading={loading}/>
-            </>} 
-        }    
-        default: return <></>
-    }
-  }
-
-  //console.log("user layout apts: ",appointments)
-
-
-
-  const { leftPanel, rightPanel } = getPageUI(mode)
+  context.handleManageAppointments = () =>navigate("/USER/location_appointments")
 
   return(<>
-    <PageLayout leftPanel={leftPanel} rightPanel={rightPanel}/>
+  <Routes>
+    <Route 
+      path="/*" 
+      element={<>
+        <PageLayout 
+          leftPanel={<>
+           <MyMap 
+              posts={filteredLocations} 
+              selected={selectedLocationId} 
+              handleSelectedLocation={selectLocation} /> 
+          </>} 
+          rightPanel={<>
+              <Routes>
+                <Route 
+                  path="/*"
+                  element={<><LocationList locations={filteredLocations} loading={loading}/></>}/>
+                <Route path="/location_appointments" element={<> 
+                    <button onClick={e=>navigate(-1)} className="cancel_panel_btn">X</button>
+                    <AppointmentList appointments={[...appointments]} icons={[...icons]} loading={loading}/> 
+                  </>}/>
+              </Routes>
+          </>}/>    
+        </>}/>
+  </Routes> 
+    
   </>)
 }
 

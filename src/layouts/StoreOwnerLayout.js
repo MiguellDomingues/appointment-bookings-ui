@@ -19,6 +19,8 @@ import AppointmentList from '../components/AppointmentList';
 import useAvailability from '../hooks/useAvailability';
 import useLocationMap from '../hooks/useLocationMap';
 
+import { Routes, Route } from "react-router-dom";
+
 import useAPI from '../useAPI.js'
 
 import API from '../API'
@@ -43,6 +45,8 @@ function StoreOwnerLayout({
   const [appointments, setAppointments] = useState([]);
   const [selectedAppointments, selectAppointments] = useState([]);
 
+  console.log(data)
+
 
 
   //const { fetchAuthLocations, loading } = useAPI(API.fetchAuthLocations);
@@ -60,13 +64,7 @@ function StoreOwnerLayout({
     breakListProps, 
     serviceDurationListProps } = useAvailability()
 
-    //const { appointments, selectedAppointments, selectAppointments } = useAppointments( data.appointments )
 
-      //const {b} = useFoo(mergeLocationAppointments(data))
-
-     // console.log("b storeowner:",b)
-
-     // console.log("storeowner")
 
   const {
     locations, 
@@ -99,15 +97,6 @@ function StoreOwnerLayout({
 
  function getData(){ fetchAuthLocations()}
 
- /*
- function getData(){ 
-    fetchAuthLocations({},(results)=>{
-      setData([{...results.posts[0]}]); //copy the first element of the returned array into a new array
-  })
- }
- */
-
-
 
   const context = useAppContext();
 
@@ -116,16 +105,16 @@ function StoreOwnerLayout({
 
   context.links = [
     {
-      name: "Location",
-      handler: ()=>setMode(PageState.Map)
-    },
-    {
-      name: "Availability",
-      handler: ()=>setMode(PageState.Availability)
+      name: "Home",
+      route: "/STOREOWNER"
     },
     {
       name: "Appointments",
-      handler: ()=>setMode(PageState.Calendar)
+      route: "/STOREOWNER/appointments"
+    },
+    {
+      name: "Availability",
+      route: "/STOREOWNER/availability"
     },
   ]
 
@@ -135,43 +124,48 @@ function StoreOwnerLayout({
   context.cancelMapPreview = cancelMapPreview
   context.selectAppointments =  (appointments)=>selectAppointments(appointments)
 
-  function getPageUI(selectedMode){     
-    switch(selectedMode){
-        case PageState.Map:{
-          return{
-            leftPanel:
-              <MyMap
-                posts={locations}
-                startZoom= {17} 
-                selected ={selectedLocationId} 
-                handleSelectedLocation={selectLocation}/>,
-            rightPanel:<LocationList locations={locations} {...{ loading}}/>,
-          }
-        }   
-        case PageState.Calendar:{
-          return{
-            leftPanel:<CalendarPanel appointments={appointments}/>,
-            rightPanel:<AppointmentList appointments={selectedAppointments} loading={loading}/>        
-          }  
-        }  
-        case PageState.Availability:
-          return{
-            leftPanel:<Calendar {...calendarProps}/>,
-            rightPanel:<>
-              <div className="body_availability">
-                <WorkingPlanList {...workingPlanListProps}/>
-                <BreakList {...breakListProps}/>
-                <ServiceDurationList {...serviceDurationListProps}/> 
-              </div>
-            </>}        
-        default: return <></>
-    }
-  }
-
-  const {leftPanel, rightPanel} = getPageUI(mode)
-
   return(<>
-    <PageLayout leftPanel={leftPanel} rightPanel={rightPanel}/>
+    <Routes>
+      <Route index element={<>
+          <PageLayout 
+            leftPanel={<>
+            <MyMap
+                  posts={locations}
+                  startZoom= {17} 
+                  selected ={selectedLocationId} 
+                  handleSelectedLocation={selectLocation}/>,
+            </>} 
+            rightPanel={<>
+                <LocationList locations={locations} {...{ loading}}/>
+            </>}/>    
+          </>}/>
+      <Route 
+        path={"appointments"} 
+        element={<>
+          <PageLayout 
+            leftPanel={<>
+              <CalendarPanel appointments={appointments}/>          
+            </>} 
+            rightPanel={<>
+                <AppointmentList appointments={selectedAppointments} loading={loading}/>  
+            </>}/> 
+        </>}/>
+      <Route 
+        path={`availability`} 
+        element={<>
+        <PageLayout 
+          leftPanel={<>
+            <Calendar {...calendarProps}/> 
+          </>} 
+          rightPanel={<>
+            <div className="body_availability">
+                  <WorkingPlanList {...workingPlanListProps}/>
+                  <BreakList {...breakListProps}/>
+                  <ServiceDurationList {...serviceDurationListProps}/> 
+                </div> 
+          </>}/> 
+      </>}/>
+  </Routes>
   </>)
 
 }

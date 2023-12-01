@@ -6,6 +6,8 @@ import MyMap from '../components/Map.tsx'
 import PageLayout from '../layouts/PageLayout';
 import LocationList from '../components/LocationList'
 
+import LoadingOverlay         from '../components/LoadingOverlay'
+
 import useIcons from '../hooks/useIcons'
 import useLocationMap from '../hooks/useLocationMap';
 
@@ -14,18 +16,11 @@ import API from '../API'
 
 import {useAppContext } from '../AppContextProvider'
 
+import { Routes, Route, } from "react-router-dom";
+
 import '../styles.css';
 
-
-const PageState = Object.freeze({
-  Map: "Map",
-  Registration: "Registration",
-  LogOn: "LogOn"
-});
-
-function GuestLayout({
-  startingMode = PageState.Map
-}){
+function GuestLayout(){
 
     const {
       fetchGuestLocations, 
@@ -38,8 +33,6 @@ function GuestLayout({
     const [data, setData] = useState([]);
 
     const {selectedIcons,toggleIcon} = useIcons();
-
-    const [ mode, setMode ] = useState(  startingMode );
 
     const { filteredLocations,selectedLocationId,selectLocation,} = useLocationMap(data, selectedIcons)
 
@@ -56,15 +49,15 @@ function GuestLayout({
     context.links = [
       {
         name: "Home",
-        handler: ()=>setMode(PageState.Map)
+        route: "/"
       },
       {
         name: "Log In",
-        handler: ()=>setMode(PageState.LogOn)
+        route: "/login"
       },
       {
         name: "Register",
-        handler: ()=>setMode(PageState.Registration)
+        route: "/register"
       },
     ]
 
@@ -73,80 +66,81 @@ function GuestLayout({
       fetchGuestLocations()
     }
 
-
-    function getPageUI(selectedMode){
-      
-      switch(selectedMode){
-          case PageState.Map:{
-            return {
-              leftPanel:<>
-                <MyMap 
-                  posts={filteredLocations} 
-                  selected={selectedLocationId} 
-                  handleSelectedLocation={selectLocation} /> 
-              </>,
-              rightPanel: <>         
-                  <LocationList {...{loading}}
-                  locations={filteredLocations}/>            
-              </>} 
-          }
-          case PageState.LogOn:{
-            return {
-              leftPanel:<>
-                <MyMap 
-                  posts={filteredLocations} 
-                  selected={selectedLocationId} 
-                  handleSelectedLocation={selectLocation} /> 
-              </>,
-              rightPanel: <>         
-                  <Authentication/>             
-              </>} 
-          }
-          case PageState.Registration:{
-            return {
-              leftPanel:<>
-                <MyMap 
-                  posts={filteredLocations} 
-                  selected={selectedLocationId} 
-                  handleSelectedLocation={selectLocation} /> 
-              </>,
-              rightPanel: <>         
-                            Register  
-              </>} 
-          }      
-          default: return <></>
-      }
-    }
-
-    const { leftPanel, rightPanel } = getPageUI(mode)
-
-    return(<>
-      <PageLayout leftPanel={leftPanel} rightPanel={rightPanel}/>
-    </>)
-  }
+return(<>
+  <Routes>
+      <Route 
+        index
+        element={<>
+          <PageLayout 
+            leftPanel={<>
+            <MyMap 
+                posts={filteredLocations} 
+                selected={selectedLocationId} 
+                handleSelectedLocation={selectLocation} /> 
+            </>} 
+            rightPanel={<>
+                <LocationList {...{loading}} locations={filteredLocations}/> 
+            </>}/>    
+          </>}/>
+      <Route 
+        path={`login`} 
+        element={<>
+          <PageLayout 
+            leftPanel={<>
+              <MyMap 
+                posts={filteredLocations} 
+                selected={selectedLocationId} 
+                handleSelectedLocation={selectLocation}/>           
+            </>} 
+            rightPanel={<>
+                <Authentication/>   
+            </>}/> 
+        </>}/>
+      <Route 
+        path={`register`} 
+        element={<>
+        <PageLayout 
+          leftPanel={<>
+            <MyMap 
+              posts={filteredLocations} 
+              selected={selectedLocationId} 
+              handleSelectedLocation={selectLocation} /> 
+          </>} 
+          rightPanel={<>
+            Register 
+          </>}/> 
+      </>}/>
+    </Routes>
+  </>)
+}
 
 export default GuestLayout
 
 function Authentication(){
 
-  const {setToken, token} = useAuth()
+  const { setToken } = useAuth()
 
   const {startSession, loading } = useAPI(
     API.startSession, 
     (result)=>{
+      const {key, path, type} = result
+      setToken({key, path, type})
       console.log("log in user:", result)
   });
 
 
-  const handleLogInUser = () =>{
-    startSession()
+  const handleStartSession = (user_name, password) =>{
+    startSession(user_name, password)
   }
 
   return(<>
-      <button onClick={e=>handleLogInUser()}>Log on as User</button>
-      <button onClick={e=>console.log("log in storeowner")}>Log on as Store Owner</button>
+
+        <LoadingOverlay 
+          isLoading={loading} 
+          isFullscreen={true}
+          loadingText={"Authenticating..."}/>
+
+      <button onClick={e=>handleStartSession("a", "a")}>Log on as User</button>
+      <button onClick={e=>handleStartSession("d", "d")}>Log on as Store Owner</button>
   </>);
 }
-
-
-//credentials: {username: "a", password: "a"} ,

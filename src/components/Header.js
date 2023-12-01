@@ -1,48 +1,35 @@
 import { useAuth } from '../AuthProvider'
 import { useAppContext } from '../AppContextProvider'
+import { Link  } from "react-router-dom";
 
-function Header({
-refetchLocations,
-refetching,
-handleSetMapPage = ()=>{},
-handleSetCalendarPage = ()=>{},
-handleSetAvailabilityPage = ()=>{},
-}){
+import useAPI from '../useAPI.js'
+import API from '../API'
 
-const { token, loadingUser,  isUser, isStoreOwner, isGuest } = useAuth();
+function Header(){
+
+const { token, loadingUser,  isUser, isStoreOwner, isGuest, unsetToken, isAuth } = useAuth();
 
 const { refetchLocations: _refetchLocations, isRefetching, links } = useAppContext();
 
-//context.refetchLocations = () => getData()
-  //context.isRefetching = loading
+const { 
+    endSession, 
+    loading
+   } = useAPI(
+      API.endSession, 
+      (results)=>{ unsetToken() }
+   )
 
-function getLinks(){
 
-    if(isStoreOwner()){
-    return <>
-        <span onClick={handleSetMapPage}>My Location</span>
-        <span onClick={handleSetCalendarPage}>My Appointments</span>
-        <span onClick={handleSetAvailabilityPage}>My Availability</span>
-    </>
-    }else{
-    return <><span onClick={handleSetMapPage}>Locations</span></>
-    }
-}
+//{links?.map(({name, handler}, i)=> <span key={i} onClick={handler}>{name}</span>)}
+  //console.log("header/////", token)
 
 return( 
     <div className="header">
 
-        {/*getLinks()*/}
-        {links?.map(({name, handler})=> <span onClick={handler}>{name}</span>)}
-
-        <span>
-        {loadingUser ? 
-            <>Athenticating....</> : 
-            <>Welcome {token && token?.username ? <>{token.username}</> : <>Guest</> }    
-        </>}
-        </span>
-        
+        {links?.map(({name, route}, i)=> <Link key={i} to={route}>{name}</Link>)}
+        {isAuth() ? <span onClick={(e)=>endSession()}>Log Out</span> : <></>}
         <span> <button disabled={isRefetching} onClick={e=>_refetchLocations()}>Refresh</button> </span>
+
     </div>);
 }
 
