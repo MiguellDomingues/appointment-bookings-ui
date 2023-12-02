@@ -26,7 +26,7 @@ async function fetchWrapper(url, options){
             .catch(error=>reject({success: false, reason: error}));
   });}
 
-const API = {
+export const API = {
     fetchGuestLocations: async () => fetchWrapper(locations_path, null),
 
     fetchAuthLocations : async (key) => fetchWrapper(`${locations_path}`, {headers: {key: key}}),
@@ -94,6 +94,64 @@ const API = {
     fetchMapInfo : async (streetNumber,city,province,country,postalCode) => 
         fetchWrapper(`${MAPS_ENDPOINT}?key=${MAPS_API_KEY}&address=${streetNumber}%20${city}%20${province}%20${country}%20${postalCode}`, {}),
 
+
+    updateWorkingPlan: async (wp_id, start, end, key) => 
+      fetchWrapper(`${availability_workingplan_path}`,  {
+        method: 'PATCH',
+        body: JSON.stringify({wp_id, start, end}),
+        headers: {
+        'Content-Type': 'application/json',
+        key: key
+    }}),
+
+    postBreak: async (days, start, end, key) => 
+      fetchWrapper(`${availability_breaks_path}`,  {
+        method: 'POST',
+        body: JSON.stringify({days, start, end}),
+        headers: {
+        'Content-Type': 'application/json',
+        key: key
+    }}),
+
+    deleteBreak: async (break_id, key) => 
+      fetchWrapper(`${availability_breaks_path}`,  {
+        method: 'DELETE',
+        body: JSON.stringify({break_id}),
+        headers: {
+        'Content-Type': 'application/json',
+        key: key
+    }}),
+
+    updateServiceDuration: async (sd_id, new_duration, key) => 
+      fetchWrapper(`${availability_servicedurations_path}`,  {
+        method: 'PATCH',
+        body: JSON.stringify({sd_id, new_duration}),
+        headers: {
+        'Content-Type': 'application/json',
+        key: key
+    }}),
+    /*
+
+    const addNewBreak = (req, res)=>{
+    console.log("/////////addNewBreak",req.body)
+    res.send( JSON.stringify({...req.body}) );
+}
+
+const deleteBreak = (req, res)=>{
+    console.log("/////////deleteBreak",req.body)
+    res.send( JSON.stringify({...req.body}) );
+}
+
+const updateServiceDuration = (req, res)=>{
+    console.log("/////////updateServiceDuration",req.body)
+    res.send( JSON.stringify({...req.body}) );
+}
+
+
+
+
+
+
     fetchWorkingPlans : async (key)=> fetchWrapper(availability_workingplan_path, {
       method: 'GET',
       headers: {'Content-Type': 'application/json',key: key}
@@ -108,7 +166,7 @@ const API = {
       method: 'GET',
       headers: {'Content-Type': 'application/json',key: key}
     }),
-
+    */
     
     
     
