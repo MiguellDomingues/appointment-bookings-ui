@@ -1,5 +1,3 @@
-
-import { nanoid } from 'nanoid'
 import moment from "moment";
 import { momentLocalizer } from "react-big-calendar";
 import {useState, useMemo, useEffect } from 'react'
@@ -165,16 +163,12 @@ function createCloseIntervals(workingPlan = []){
 
 function createBreakIntervals(breaks = []){
 
-    console.log("cbi ",breaks)
-
     const daysOfTheWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     const breakIntervals = []
 
     const timeStrToHoursMinutes = (timeStr) => ({h: parseInt(timeStr.split(":")[0]), m: parseInt(timeStr.split(":")[1])})
 
-
-    
     breaks.forEach(b=>{
         const {days, start, end} = b
         //console.log(start, end)
@@ -204,70 +198,69 @@ function createBreakIntervals(breaks = []){
     return breakIntervals      
 }
 
-function useAvailability(){
+function getAvailabilityPropsFromData(dataArr = []){
+    return {
+        workingPlan: dataArr[0] ? dataArr[0]?.workingPlan : defaultWorkingPlan,
+        breaks: dataArr[0] ? dataArr[0]?.breaks : [],
+        serviceDurations: dataArr[0] ? dataArr[0]?.serviceDurations : [],
+    }
+}
 
-   
-    const [workingPlan, setWorkingPlan] = useState([...defaultWorkingPlan]) //...mockWorkingPlan
+function useAvailability(dataArr = []){
 
+    ////////////////////////states
+    const [workingPlan, setWorkingPlan] = useState([...defaultWorkingPlan])
     const [serviceDurations, setServiceDurations] = useState([])
-
     const [breaks, setWorkingBreaks] = useState([])
 
+    ////////////////////////calendar apperence data///////////////
     const {closeIntervals, startMin, endMax, timeStep} =  useMemo( ()=>createCloseIntervals(workingPlan), [workingPlan])
     const breakIntervals =  useMemo( ()=>createBreakIntervals(breaks), [breaks])
 
-    console.log("//////fetch working plan/////", workingPlan)
-    console.log("//////fetch breaks/////", breaks)
-    console.log("//////fetchServiceDurations/////", serviceDurations)
+    ////////////////////////on load and refetches, retreive the availability props from data///////////////
+    useEffect( () => { 
+        //console.log("useavail use effect")
+        const {workingPlan, breaks, serviceDurations } = getAvailabilityPropsFromData(dataArr);
+        setWorkingPlan([...workingPlan]);
+        setWorkingBreaks([...breaks]);
+        setServiceDurations([...serviceDurations]);
+    }, [dataArr]);
 
     const { 
-        fetchWorkingPlans, 
-        loading: loadingFetchWorkingPlans 
-    } = useAPI(API.fetchWorkingPlans,({workingPlan})=>setWorkingPlan([...workingPlan]));
+        updateWorkingPlan, 
+        loading: loadingUpdateWorkingPlan
+    } = useAPI(
+            API.updateWorkingPlan,
+            ({wp_id, start, end}) => setWorkingPlan((workingPlan)=> 
+                [ ...workingPlan.map((wp)=> 
+                    wp.id===wp_id ? {id: wp_id, day: wp.day, start: start, end: end} : wp)])); //on successful working plan update, update the UI state
 
     const { 
-        fetchBreaks, 
-        loading: loadingFetchBreaks
-    } = useAPI(API.fetchBreaks,({breaks})=>setWorkingBreaks([...breaks]));
+        postBreak, 
+        loading: loadingpostBreak
+    } = useAPI
+            (API.postBreak,
+            ({days, start, end, break_id})=> setWorkingBreaks((workingBreaks)=>
+                [ ...workingBreaks, {days, start, end, id: break_id}]));  //on successful break delete, update the UI state
 
     const { 
-        fetchServiceDurations, 
-        loading: loadingFetchServiceDurations
-    } = useAPI(API.fetchServiceDurations,({serviceDurations})=>setServiceDurations([...serviceDurations]));
+        deleteBreak, 
+        loading: loadingdeleteBreak
+    } = useAPI(
+            API.deleteBreak,
+            ({break_id})=> setWorkingBreaks((workingBreaks)=>
+                [...(workingBreaks.filter(wb=>wb.id!==break_id) )])); //on successful break add, update the UI state
 
-    useEffect(()=>{
-        fetchWorkingPlans()
-        fetchBreaks()
-        fetchServiceDurations()
-    }, [])
-
-     /////////////////////service durations///////////////////////////// 
+    const { 
+        updateServiceDuration: _updateServiceDuration,
+        loading: loadingupdateServiceDuration
+    } = useAPI(
+            API.updateServiceDuration,
+            ({sd_id, new_duration})=> setServiceDurations((serviceDurations)=>
+                [ ...serviceDurations.map((sd)=>
+                    sd.id===sd_id ? {id: sd_id, duration: new_duration, service: sd.service} : sd)])); //on successful service duration update , update the UI state
+ 
      
-  
-     function updateServiceDuration(id, duration){
-         serviceDurations[id].duration = duration
-         setServiceDurations((_serviceDurations)=>[ ..._serviceDurations ])
-     }   
-     ///////////////////////////////////////////////////////////
-
-    /////////////////////working plan/////////////////////////////
-    
-    function updateWorkingPlanDay(day, start, end){
-        setWorkingPlan((workingPlan)=>[ ...workingPlan.map((wp)=>wp.day===day ? {day, start, end} : wp)  ])
-    }
-
-    ///////////////////////////////////////////////////////////
-  
-  
-    /////////////////////breaks/////////////////////////////
-   
-    function deleteWorkingBreak(id){
-        setWorkingBreaks((workingBreaks)=>[...(workingBreaks.filter(wb=>wb.id!==id) )])
-    }
-
-    function addWorkingBreak(days, start, end){
-        setWorkingBreaks((workingBreaks)=>[ ...workingBreaks, {days, start, end, id: nanoid()}])
-    }
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
   
     const eventPropGetter = (event, start, end, isSelected) => ({ //override some CSS for the event containers
@@ -278,12 +271,6 @@ function useAvailability(){
         eventTimeRangeFormat: (event, culture, localizer) => "",                        //removes the start/end time strings from each event
         dayFormat: (date, culture, localizer) =>localizer.format(date, 'ddd', culture), //change the day columns to only display the day of the week
     }
-
-   
-    
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    //console.log(closeIntervals)
 
     return {
         calendarProps: {
@@ -305,9 +292,22 @@ function useAvailability(){
             onSelectEvent:      (event) => console.log("clicked event "),
             onSelectSlot:       ()=>console.log("clicked Slot")   
         },
-        workingPlanListProps:       {workingPlan,updateWorkingPlanDay},
-        breakListProps:             {breaks,deleteWorkingBreak,addWorkingBreak},
-        serviceDurationListProps:   {serviceDurations, updateServiceDuration }
+        workingPlanListProps: {
+            workingPlan,
+            updateWorkingPlanDay: updateWorkingPlan, //re-alias callout names to match cmp prop names
+            loading: loadingUpdateWorkingPlan
+        },
+        breakListProps: {
+            breaks,
+            deleteWorkingBreak: deleteBreak,
+            addWorkingBreak: postBreak,
+            loading: loadingpostBreak || loadingdeleteBreak
+        },
+        serviceDurationListProps: {
+            serviceDurations, 
+            loading: loadingupdateServiceDuration,
+            updateServiceDuration: _updateServiceDuration,
+        }
     }
 
 
@@ -315,6 +315,7 @@ function useAvailability(){
 
 export default useAvailability
 
+//boilerplate to override the calendar apperence
 const workWeekRange = (date, options) =>([
     new Date("2023", 10, 20, 0, 0 , 0, 0),
     new Date("2023", 10, 21, 0, 0 , 0, 0),
