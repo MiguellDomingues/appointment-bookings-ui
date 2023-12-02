@@ -47,10 +47,6 @@ function StoreOwnerLayout({
 
   console.log(data)
 
-
-
-  //const { fetchAuthLocations, loading } = useAPI(API.fetchAuthLocations);
-
   const { 
     fetchAuthLocations, 
     loading
@@ -62,7 +58,7 @@ function StoreOwnerLayout({
     calendarProps, 
     workingPlanListProps, 
     breakListProps, 
-    serviceDurationListProps } = useAvailability()
+    serviceDurationListProps } = useAvailability(data)
 
 
 
@@ -159,10 +155,10 @@ function StoreOwnerLayout({
           </>} 
           rightPanel={<>
             <div className="body_availability">
-                  <WorkingPlanList {...workingPlanListProps}/>
-                  <BreakList {...breakListProps}/>
-                  <ServiceDurationList {...serviceDurationListProps}/> 
-                </div> 
+              <WorkingPlanList {...workingPlanListProps}/>
+              <BreakList {...breakListProps}/>
+              <ServiceDurationList {...serviceDurationListProps}/> 
+            </div> 
           </>}/> 
       </>}/>
   </Routes>

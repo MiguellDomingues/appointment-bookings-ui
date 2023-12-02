@@ -1,33 +1,41 @@
 
 import { ActionButton }   from './widgets'
 import { useToggleUI } from '../hooks/useToggleUI'
+import LoadingWrapper from './LoadingWrapper';
+
+import { generateKey } from '../utils'
+
+import '../styles.css';
 
 //move this to a utils file; used inside Availability
 const hourMinutestoTotalMinutes = timeString => parseInt(timeString.split(":")[0])*60 + parseInt(timeString.split(":")[1])
 
-
-function WorkingPlanList({workingPlan,updateWorkingPlanDay}){
-
-    return(<> 
-        <table className="table_border table_width">
-        <caption className="table_title">Working Plan</caption>
-            <tbody>
-                <tr>    
-                    <th>Day</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Action</th>
-                </tr>
-                
-                {workingPlan.map(({day, start, end})=>
-                    <WorkingPlanDay key={day} {...{day, start, end, updateWorkingPlanDay}}/>
-                )}
-            </tbody>
-        </table> 
+function WorkingPlanList({workingPlan,updateWorkingPlanDay, loading}){
+    return(<>
+            <LoadingWrapper loading={loading}>
+                <table className="table_border table_width">
+                <caption className="table_title">Working Plan</caption>
+                    <tbody>
+                        <tr>    
+                            <th>Day</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Action</th>
+                        </tr>
+                        
+                        {workingPlan.map( ({id, day, start, end})=>
+                            <WorkingPlanDay 
+                                key={generateKey(id, start, end)} //when the start/end are changed for an id, we need to force this cmp to rerender
+                                _id={id} {...{day, start, end, updateWorkingPlanDay}}/>
+                        )}
+                    </tbody>
+                </table>  
+            </LoadingWrapper>
     </>);
 }
 
 function WorkingPlanDay({
+    _id, 
     day, 
     start, 
     end,
@@ -65,8 +73,7 @@ function WorkingPlanDay({
       }
 
       function handleSave(){
-        updateWorkingPlanDay(day, state.formInputs.start, state.formInputs.end)
-        showRead()
+        updateWorkingPlanDay(_id, state.formInputs.start, state.formInputs.end)
       }
 
       function handleEdit(){
@@ -79,9 +86,7 @@ function WorkingPlanDay({
       }
 
       function handleDelete(){
-        updateWorkingPlanDay(day, "", "")
-        updateForm({ start: "", end: ""} )     
-        showRead()
+        updateWorkingPlanDay(_id, "", "")
       }
 
       const { state, updateForm,showRead,showEdit} = useToggleUI({ start, end},readOnlyUI, editUI)
@@ -99,5 +104,9 @@ function WorkingPlanDay({
 }
 
 export default WorkingPlanList;
+
+
+
+
 
 

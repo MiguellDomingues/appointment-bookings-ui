@@ -1,6 +1,7 @@
 
 import { ActionButton,SelectableItemsList }   from './widgets'
 import { useToggleUI,ToggleUIState } from '../hooks/useToggleUI'
+import LoadingWrapper from './LoadingWrapper';
 
 /*
 const _abbreviatedDays = Object.freeze({
@@ -28,23 +29,25 @@ const abbreviatedDays = Object.freeze({
   });
 
 
-function BreakList({breaks,deleteWorkingBreak,addWorkingBreak}){
+function BreakList({breaks,deleteWorkingBreak,addWorkingBreak, loading}){
 
     return(<>
-         <table className="table_border table_width">
-            <caption className="table_title">Breaks</caption>
-            <tbody>
-                <tr>    
-                    <th>Days</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Action</th>
-                </tr>          
-                {breaks.map(({days, start, end, id}, idx)=>
-                    <Break key={id} {...{days, start, end, id,  deleteWorkingBreak, addWorkingBreak}}/>)}
-                <Break startingState={ToggleUIState.Edit} {...{addWorkingBreak}}/>
-            </tbody>
-        </table>   
+        <LoadingWrapper loading={loading}>
+                <table className="table_border table_width">
+                <caption className="table_title">Breaks</caption>
+                <tbody>
+                    <tr>    
+                        <th>Days</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Action</th>
+                    </tr>          
+                    {breaks.map(({days, start, end, id}, idx)=>
+                        <Break key={id} {...{days, start, end, id,  deleteWorkingBreak, addWorkingBreak}}/>)}
+                    <Break startingState={ToggleUIState.Edit} {...{addWorkingBreak}}/>
+                </tbody>
+            </table>   
+        </LoadingWrapper>
     </>);
 }
 
@@ -89,9 +92,6 @@ function Break({
             </>,
         }
     }
-
-
-
 
     function toggleDay(day){
   

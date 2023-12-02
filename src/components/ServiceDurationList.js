@@ -1,34 +1,38 @@
 import { ActionButton }   from './widgets'
 import { useToggleUI } from '../hooks/useToggleUI'
 import { getIconByKey }   from './IconList'
+import LoadingWrapper from './LoadingWrapper';
+import { generateKey } from '../utils'
 
-function ServiceDurationList({serviceDurations,updateServiceDuration}){
+function ServiceDurationList({serviceDurations,updateServiceDuration, loading}){
 
     return(<>
-         <table className="table_border table_width">
-            <caption className="table_title">Service Durations</caption>
-            <tbody>
-                <tr>    
-                    <th>Type</th>
-                    <th>Duration (minutes)</th>
-                    <th>Action</th>
-                </tr>
-                
-                {serviceDurations.map(({type, duration}, idx)=>
-                    <ServiceDuration 
-                        key={idx} 
-                        id={idx} duration
-                        Icon={getIconByKey(type)} 
-                        {...{updateServiceDuration,duration}}/>)}
-            </tbody>
-        </table>   
+        <LoadingWrapper loading={loading}>
+            <table className="table_border table_width">
+                <caption className="table_title">Service Durations</caption>
+                <tbody>
+                    <tr>    
+                        <th>Type</th>
+                        <th>Duration (minutes)</th>
+                        <th>Action</th>
+                    </tr>
+                    
+                    {serviceDurations.map(({service, duration, id})=>
+                        <ServiceDuration 
+                            key={generateKey(id, duration)} //when the duration changes, the cmp needs to rerender
+                            _id={id} 
+                            Icon={getIconByKey(service)} 
+                            {...{updateServiceDuration,duration}}/>)}
+                </tbody>
+            </table>
+        </LoadingWrapper>   
     </>);
 }
 
 function ServiceDuration({
     Icon,
     duration,
-    id,
+    _id,
     updateServiceDuration
 }){
 
@@ -54,8 +58,7 @@ function ServiceDuration({
        }
  
        function handleSave(){
-         updateServiceDuration(id, state.formInputs.duration )
-         showRead()
+         updateServiceDuration(_id, state.formInputs.duration )
        }
  
        function handleEdit(){
@@ -68,7 +71,7 @@ function ServiceDuration({
        }
  
        function handleDelete(){
-         updateServiceDuration(id, "")
+         updateServiceDuration(_id, "")
          updateForm({ duration: ""} )     
          showRead()
        }
