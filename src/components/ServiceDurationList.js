@@ -59,6 +59,7 @@ function ServiceDuration({
  
        function handleSave(){
          updateServiceDuration(_id, state.formInputs.duration )
+         //showRead()
        }
  
        function handleEdit(){
@@ -72,8 +73,8 @@ function ServiceDuration({
  
        function handleDelete(){
          updateServiceDuration(_id, "")
-         updateForm({ duration: ""} )     
-         showRead()
+        // updateForm({ duration: ""} )     
+         //showRead()
        }
 
     const { state, updateForm,showRead,showEdit} = useToggleUI({duration},readOnlyUI, editUI)

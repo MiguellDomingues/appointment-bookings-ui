@@ -104,19 +104,19 @@ export const API = {
         key: key
     }}),
 
-    postBreak: async (days, start, end, key) => 
+    postBreak: async (days, start, end, location_id, key) => 
       fetchWrapper(`${availability_breaks_path}`,  {
         method: 'POST',
-        body: JSON.stringify({days, start, end}),
+        body: JSON.stringify({days, start, end, location_id}),
         headers: {
         'Content-Type': 'application/json',
         key: key
     }}),
 
-    deleteBreak: async (break_id, key) => 
+    deleteBreak: async (break_id, location_id, key) => 
       fetchWrapper(`${availability_breaks_path}`,  {
         method: 'DELETE',
-        body: JSON.stringify({break_id}),
+        body: JSON.stringify({location_id, break_id}),
         headers: {
         'Content-Type': 'application/json',
         key: key

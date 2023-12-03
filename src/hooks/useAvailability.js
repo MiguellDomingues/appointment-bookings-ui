@@ -200,15 +200,17 @@ function createBreakIntervals(breaks = []){
 
 function getAvailabilityPropsFromData(dataArr = []){
     return {
-        workingPlan: dataArr[0] ? dataArr[0]?.workingPlan : defaultWorkingPlan,
-        breaks: dataArr[0] ? dataArr[0]?.breaks : [],
-        serviceDurations: dataArr[0] ? dataArr[0]?.serviceDurations : [],
+        locationId: dataArr[0] ? dataArr[0].id : null,
+        workingPlan: dataArr[0] ? dataArr[0].workingPlan : defaultWorkingPlan,
+        breaks: dataArr[0] ? dataArr[0].breaks : [],
+        serviceDurations: dataArr[0] ? dataArr[0].serviceDurations : [],
     }
 }
 
 function useAvailability(dataArr = []){
 
     ////////////////////////states
+    const [locationId, setLocationId] = useState(null)
     const [workingPlan, setWorkingPlan] = useState([...defaultWorkingPlan])
     const [serviceDurations, setServiceDurations] = useState([])
     const [breaks, setWorkingBreaks] = useState([])
@@ -220,7 +222,8 @@ function useAvailability(dataArr = []){
     ////////////////////////on load and refetches, retreive the availability props from data///////////////
     useEffect( () => { 
         //console.log("useavail use effect")
-        const {workingPlan, breaks, serviceDurations } = getAvailabilityPropsFromData(dataArr);
+        const {workingPlan, breaks, serviceDurations,locationId } = getAvailabilityPropsFromData(dataArr);
+        setLocationId(locationId)
         setWorkingPlan([...workingPlan]);
         setWorkingBreaks([...breaks]);
         setServiceDurations([...serviceDurations]);
@@ -252,7 +255,7 @@ function useAvailability(dataArr = []){
                 [...(workingBreaks.filter(wb=>wb.id!==break_id) )])); //on successful break add, update the UI state
 
     const { 
-        updateServiceDuration: _updateServiceDuration,
+        updateServiceDuration,
         loading: loadingupdateServiceDuration
     } = useAPI(
             API.updateServiceDuration,
@@ -299,14 +302,14 @@ function useAvailability(dataArr = []){
         },
         breakListProps: {
             breaks,
-            deleteWorkingBreak: deleteBreak,
-            addWorkingBreak: postBreak,
+            deleteWorkingBreak: (...props) => deleteBreak(...props, locationId), //inject the location_id into the callouts
+            addWorkingBreak:    (...props) => postBreak(...props, locationId),   //this avoids having to pass the id into the cmps
             loading: loadingpostBreak || loadingdeleteBreak
         },
         serviceDurationListProps: {
             serviceDurations, 
             loading: loadingupdateServiceDuration,
-            updateServiceDuration: _updateServiceDuration,
+            updateServiceDuration,
         }
     }
 
