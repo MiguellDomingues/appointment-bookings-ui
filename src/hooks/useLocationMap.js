@@ -1,4 +1,7 @@
-import {useState, useEffect, useMemo } from 'react'
+import {useState, useEffect, useMemo, useRef } from 'react'
+
+import useAPI from '../useAPI'
+import API from '../API'
 
 function filterLocationsBySelectedIcons(locations = [], selected_icons = []){
 
@@ -37,71 +40,81 @@ const getLocationPropsFromData = dataArr =>
 }))
 
 
-function useLocationMap(dataArr = [], selectedFilters = []){
+function useLocationMap(dataArr = [], selectedFilters = [], navHome){
 
     const [selectedLocationId, setSelectedLocationId] = useState(null);
-    const [mapPreviewProps, setMapPreviewProps] = useState(null);
-
-    
-
     const [locations, setLocations] = useState(getLocationPropsFromData(dataArr));
+
+    const originalLocation = useRef(null); //when i switch pages, the address is not replaced. i need to reset the map when the page changes
+    //put map preview in its own path? storeowner/edit_location/map_preview?
+    //put map preview into its own hook
+
 
     useEffect( () => { setLocations(getLocationPropsFromData(dataArr)) }, [dataArr]);
 
     const filteredLocations = useMemo( ()=>filterLocationsBySelectedIcons(locations, selectedFilters) , [locations,selectedFilters])
 
-    function viewMapPreview(LatLng, info, title){
-        //REPLACE the location data (latlng title info)
-        //console.log("vsmi", lat, lng)
-        setMapPreviewProps({LatLng:{...LatLng}, info, title})
-    }
-    
-    function cancelMapPreview(){
-        //RESET the location data to original
-        setMapPreviewProps(null)
-    }
-    
-    function getMapProps(){
-        let mapProps = {}
-    
-        if(mapPreviewProps){
-    
-           // console.log("sampleLocation", mapPreviewProps)
-    
-            mapProps = {
-                posts: [{...mapPreviewProps, id: "mapPreviewProps"}] ,
-                selected: "mapPreviewProps" ,
-                startZoom: 17 ,
-                centerLat: mapPreviewProps.LatLng.lat,
-                centerLng :mapPreviewProps.LatLng.lng,
-                handleSelectedLocation: ()=>{}
+    const {
+        loading: editLocationLoading, 
+        editLocation,
+     } = useAPI(
+            API.editLocation, 
+            ({location})=>{
+                console.log("edit location success", location)
+                setLocations([{...location}])
+                navHome()
             }
-      
-        }else{
-    
-            mapProps = {
-                posts: locations,
-                startZoom: 17 ,
-                selected: selectedLocationId ,
-                handleSelectedLocation: (id)=>setSelectedLocationId(id)
-            }         
-        }
-    
-       // console.log("mapProps", mapProps)
-    
-        return mapProps
-    
-    }
+        );
 
+    const {
+        loading: fetchMapInfoLoading, 
+        fetchMapInfo,
+        } = useAPI(
+            API.fetchMapInfo, 
+            ({ success, results, status})=>{
+                console.log(success)
+                console.log(results)
+                console.log(status)
+    
+                if(!success || status !== "OK"){
+                    throw new Error(" fetchMapInfo API error")          
+                }else{
+                    //do the swap here
+                    console.log(results[0].geometry.location)
+
+                    const previewLatLng = results[0].geometry.location
+
+                    originalLocation.current = [{...locations[0], LatLng: {...locations[0].LatLng}}]
+
+                    console.log("locs",locations)
+                    console.log("ref loc",originalLocation.current)
+
+                    setLocations(locations=>[{...locations[0], LatLng: {...previewLatLng}}])
+                }
+        
+            },
+            (err)=>{ console.log("error callback map: ", err)}
+        );
+
+    function cancelMapPreview(){
+        if(originalLocation.current){
+            setLocations([{...originalLocation.current[0]}])
+            originalLocation.current = null
+        }    
+    }
+    
     return {
         locations, 
         filteredLocations,
         selectedLocationId,
         selectLocation: (id)=>setSelectedLocationId(id),
-        getMapProps,
-        viewMapPreview,
         cancelMapPreview,
+        editLocationLoading,
+        editLocation,
+        fetchMapInfo,
+        fetchMapInfoLoading,
     }
 }
 
 export default useLocationMap;
+
