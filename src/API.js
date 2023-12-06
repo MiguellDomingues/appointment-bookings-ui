@@ -95,10 +95,10 @@ export const API = {
         fetchWrapper(`${MAPS_ENDPOINT}?key=${MAPS_API_KEY}&address=${streetNumber}%20${city}%20${province}%20${country}%20${postalCode}`, {}),
 
 
-    updateWorkingPlan: async (wp_id, start, end, key) => 
+    updateWorkingPlan: async (wp_id, start, end, location_id, key) => 
       fetchWrapper(`${availability_workingplan_path}`,  {
         method: 'PATCH',
-        body: JSON.stringify({wp_id, start, end}),
+        body: JSON.stringify({wp_id, start, end, location_id}),
         headers: {
         'Content-Type': 'application/json',
         key: key
@@ -130,46 +130,7 @@ export const API = {
         'Content-Type': 'application/json',
         key: key
     }}),
-    /*
-
-    const addNewBreak = (req, res)=>{
-    console.log("/////////addNewBreak",req.body)
-    res.send( JSON.stringify({...req.body}) );
-}
-
-const deleteBreak = (req, res)=>{
-    console.log("/////////deleteBreak",req.body)
-    res.send( JSON.stringify({...req.body}) );
-}
-
-const updateServiceDuration = (req, res)=>{
-    console.log("/////////updateServiceDuration",req.body)
-    res.send( JSON.stringify({...req.body}) );
-}
-
-
-
-
-
-
-    fetchWorkingPlans : async (key)=> fetchWrapper(availability_workingplan_path, {
-      method: 'GET',
-      headers: {'Content-Type': 'application/json',key: key}
-    }),
-
-    fetchBreaks : async (key)=> fetchWrapper(availability_breaks_path, {
-      method: 'GET',
-      headers: {'Content-Type': 'application/json',key: key}
-    }),
-
-    fetchServiceDurations : async (key)=> fetchWrapper(availability_servicedurations_path, {
-      method: 'GET',
-      headers: {'Content-Type': 'application/json',key: key}
-    }),
-    */
-    
-    
-    
+   
     startSession : async (user_name, password)=>
        fetchWrapper(auth_path, {
         method: 'POST',
@@ -186,65 +147,6 @@ const updateServiceDuration = (req, res)=>{
   }
 
 export default API
-
-//${DOMAIN}${ENDPOINT_URL_AUTH}
-
-/*
- export const startSession = (request,path) => {
-   // console.log("---logging on---", request, path)
-  
-    return new Promise( (resolve, reject) => {
-  
-      const request_body = {
-        user_name: request.username,
-        password: request.password
-      }
-  
-      fetch(path, {
-        method: 'POST',
-        body: JSON.stringify(request_body),
-        // need to set header to 'application/json' to send POST methods
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(((res) => res.json()))
-      .then((data) => {
-  
-       // console.log("RESPONSE FROM SERVER IN AUTHENTICATE: ", data);
-  
-        if(data.key && data.type && data.path){
-          data.success = true
-          return resolve(data)
-        }
-  
-        return reject(START_SESSION_FAILURE)
-      })
-      .catch((error) => {
-        //console.log('Error logging on.', error);
-        return reject(START_SESSION_FAILURE)
-      });
-  
-    })
-  ;}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 unused callouts:

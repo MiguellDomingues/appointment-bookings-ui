@@ -297,7 +297,7 @@ function useAvailability(dataArr = []){
         },
         workingPlanListProps: {
             workingPlan,
-            updateWorkingPlanDay: updateWorkingPlan, //re-alias callout names to match cmp prop names
+            updateWorkingPlanDay: (...props) => updateWorkingPlan(...props, locationId),//updateWorkingPlan, //re-alias callout names to match cmp prop names
             loading: loadingUpdateWorkingPlan
         },
         breakListProps: {
