@@ -16,7 +16,7 @@ function LoadingOverlay({
         borderColor: "black",
     };
 
-    const layout = isFullscreen ? `model`:`container_model`;
+    const layout = isFullscreen ? `fullscreen_overlay`:`container_overlay`;
     const size = isFullscreen ? 150 : 15;
 
     return(<>

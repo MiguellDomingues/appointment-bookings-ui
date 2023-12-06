@@ -198,7 +198,8 @@
   margin-top: 1rem;
 }
 
-.model{
+
+.fullscreen_overlay{
   display: block; /* Hidden by default */
   position: fixed; /* Stay in place */
   z-index: 3; /* Sit on top */
@@ -227,7 +228,7 @@
   font-weight: 400;
 }
 
-.container_model{
+.container_overlay{
   position: absolute; /* Stay in place */
   z-index: 3; /* Sit on top */
   left: 0;
@@ -372,8 +373,26 @@
 }
 
 .load_wrapper{
+  position: relative;
   width: 100%;
   height: 100%;
+}
+
+.modal_container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  min-width: 100%;
+}
+
+.auth_body{
+  height: 500px;
+  width: 500px;
+  background-color: white;
+}
+
+.close_wrapper{
   position: relative;
 }
 

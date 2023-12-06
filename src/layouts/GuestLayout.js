@@ -51,14 +51,6 @@ function GuestLayout(){
         name: "Home",
         route: "/"
       },
-      {
-        name: "Log In",
-        route: "/login"
-      },
-      {
-        name: "Register",
-        route: "/register"
-      },
     ]
 
 
@@ -82,65 +74,8 @@ return(<>
                 <LocationList {...{loading}} locations={filteredLocations}/> 
             </>}/>    
           </>}/>
-      <Route 
-        path={`login`} 
-        element={<>
-          <PageLayout 
-            leftPanel={<>
-              <MyMap 
-                posts={filteredLocations} 
-                selected={selectedLocationId} 
-                handleSelectedLocation={selectLocation}/>           
-            </>} 
-            rightPanel={<>
-                <Authentication/>   
-            </>}/> 
-        </>}/>
-      <Route 
-        path={`register`} 
-        element={<>
-        <PageLayout 
-          leftPanel={<>
-            <MyMap 
-              posts={filteredLocations} 
-              selected={selectedLocationId} 
-              handleSelectedLocation={selectLocation} /> 
-          </>} 
-          rightPanel={<>
-            Register 
-          </>}/> 
-      </>}/>
     </Routes>
   </>)
 }
 
 export default GuestLayout
-
-function Authentication(){
-
-  const { setToken } = useAuth()
-
-  const {startSession, loading } = useAPI(
-    API.startSession, 
-    (result)=>{
-      const {key, path, type} = result
-      setToken({key, path, type})
-      console.log("log in user:", result)
-  });
-
-
-  const handleStartSession = (user_name, password) =>{
-    startSession(user_name, password)
-  }
-
-  return(<>
-
-        <LoadingOverlay 
-          isLoading={loading} 
-          isFullscreen={true}
-          loadingText={"Authenticating..."}/>
-
-      <button onClick={e=>handleStartSession("a", "a")}>Log on as User</button>
-      <button onClick={e=>handleStartSession("d", "d")}>Log on as Store Owner</button>
-  </>);
-}
