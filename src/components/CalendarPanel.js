@@ -9,7 +9,15 @@ import 'react-calendar/dist/Calendar.css';
 import '../styles.css';
 
 //convert react-calendar date to a YYYY-MM-DD string
-const dateToYYYYMMDDString = (date) => (date.toISOString().split('T')[0] )
+//https://stackoverflow.com/questions/72369594/how-to-display-the-date-as-a-day-month-year-format-after-adding-10-days-to-curre
+const dateToYYYYMMDDString = (date) =>{
+
+    const dd = String(date.getDate()).padStart(2,'0');  
+    const mm = String(date.getMonth()+1).padStart(2,'0');  
+    const yyyy = date.getFullYear(); 
+
+    return `${yyyy}-${mm}-${dd}`
+} 
 
  /*
     - group a list of appointments by date
