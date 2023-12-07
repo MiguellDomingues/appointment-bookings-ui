@@ -1,13 +1,13 @@
 
 import { useAuth } from '../AuthProvider'
-import {IconList, } from './IconList'
+import IconList from './IconList'
 import {useAppContext} from '../AppContextProvider'
 
 import '../styles.css';
 
 function LocationCard({
     location = {},
-    isLocationSelected,
+    isLocationSelected = false,
     handleSetEdit = () =>{},
   }){
     const { isStoreOwner, isUser } = useAuth();  

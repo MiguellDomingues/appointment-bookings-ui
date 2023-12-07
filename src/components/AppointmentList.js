@@ -6,11 +6,11 @@ import { STATUS } from '../constants'
 
 import { ActionButton }   from './widgets'
 
-import { IconList, getIconByKey }   from './IconList'
+import  IconList  from './IconList'
 import {useAppContext}        from '../AppContextProvider'
 import LoadingOverlay         from './LoadingOverlay'
 
-import useIcons               from '../hooks/useIcons'
+import {useIcons, getIconByKey }               from '../hooks/useIcons'
 import {useToggleUI,ToggleUIState }             from '../hooks/useToggleUI'
 
 import useAPI from '../useAPI'

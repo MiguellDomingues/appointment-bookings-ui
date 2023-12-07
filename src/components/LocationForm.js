@@ -1,8 +1,8 @@
 
 import {useState } from 'react'
 
-import {IconList, getIcons} from './IconList'
-import useIcons from '../hooks/useIcons'
+import IconList from './IconList'
+import {useIcons,getIcons} from '../hooks/useIcons'
 
 import '../styles.css';
 

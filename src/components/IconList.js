@@ -1,23 +1,8 @@
 import {cloneElement } from 'react'
 
-import { FaWrench, FaOilCan, FaCarBattery} from 'react-icons/fa';
-import { MdLocalCarWash, MdOutlineCarRepair} from 'react-icons/md';
-import { GiMechanicGarage } from 'react-icons/gi';
+import {Icons} from '../hooks/useIcons'
 
-const Icons = Object.freeze({
-    MdOutlineCarRepair: <MdOutlineCarRepair/>,
-    FaWrench: <FaWrench/>,
-    FaOilCan: <FaOilCan/>,
-    MdLocalCarWash: <MdLocalCarWash/>,
-    GiMechanicGarage: <GiMechanicGarage/>,
-    FaCarBattery: <FaCarBattery/>,
-});
-
-export const getIconByKey = (iconName) => Icons[iconName]
-
-export const getIcons = () => Object.keys(Icons)
-
-export function IconList({
+function IconList({
     icons = [],
     disabledIcons = [],
     selectedIcons = [],

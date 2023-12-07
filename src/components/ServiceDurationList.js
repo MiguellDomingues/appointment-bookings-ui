@@ -1,6 +1,6 @@
 import { ActionButton }   from './widgets'
 import { useToggleUI } from '../hooks/useToggleUI'
-import { getIconByKey }   from './IconList'
+import { getIconByKey  } from '../hooks/useIcons'
 import LoadingWrapper from './LoadingWrapper';
 import { generateKey } from '../utils'
 

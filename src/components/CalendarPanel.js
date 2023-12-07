@@ -2,7 +2,7 @@ import Calendar from 'react-calendar';
 
 import {useState, useMemo, useEffect } from 'react'
 
-import {IconList} from './IconList'
+import IconList from './IconList'
 
 import {useAppContext} from '../AppContextProvider'
 import 'react-calendar/dist/Calendar.css';
