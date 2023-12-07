@@ -1,22 +1,4 @@
-import {
-    DOMAIN, 
-    ENDPOINT_URL_APPOINTMENT,
-    ENDPOINT_URL_LOCATION,
-    MAPS_API_KEY,
-    MAPS_ENDPOINT,
-    ENDPOINT_WORKING_PLANS,    
-    ENDPOINT_BREAKS ,          
-    ENDPOINT_SERVICE_DURATIONS,
-    ENDPOINT_URL_AUTH,
-    ENDPOINT_URL_REGISTER
-  } from './constants'
-
-  const locations_path = `${DOMAIN}${ENDPOINT_URL_LOCATION}`
-  const appointments_path = `${DOMAIN}${ENDPOINT_URL_APPOINTMENT}`
-  const availability_workingplan_path = `${DOMAIN}${ENDPOINT_WORKING_PLANS}`
-  const availability_breaks_path = `${DOMAIN}${ENDPOINT_BREAKS}`
-  const availability_servicedurations_path = `${DOMAIN}${ENDPOINT_SERVICE_DURATIONS}`
-  const auth_path = `${DOMAIN}${ENDPOINT_URL_AUTH}`
+import {MAPS_API_KEY, PATHS} from './constants'
 
 async function fetchWrapper(url, options){
     return new Promise( (resolve, reject) => { 
@@ -27,13 +9,13 @@ async function fetchWrapper(url, options){
   });}
 
 export const API = {
-    fetchGuestLocations: async () => fetchWrapper(locations_path, null),
+    fetchGuestLocations: async () => fetchWrapper(PATHS.LOCATIONS, null),
 
-    fetchAuthLocations : async (key) => fetchWrapper(`${locations_path}`, {headers: {key: key}}),
+    fetchAuthLocations : async (key) => fetchWrapper(PATHS.LOCATIONS, {headers: {key: key}}),
 
     editLocation : async (location,key) => {
         //console.log("el: ", location)
-        return fetchWrapper(`${locations_path}`,  {
+        return fetchWrapper(PATHS.LOCATIONS,  {
             method: 'PATCH',
             body: JSON.stringify({
                 storeowner_id:    key, 
@@ -51,7 +33,7 @@ export const API = {
         }})},
 
     editAppointmentStatus : async (apt_id, new_status,key) => 
-        fetchWrapper(`${appointments_path}`,  {
+        fetchWrapper(PATHS.APPOINTMENTS,  {
             method: 'PATCH',
             body: JSON.stringify({
                 storeowner_id:    key, 
@@ -64,7 +46,7 @@ export const API = {
         }}),
 
     postAppointment : async (appointment,key) => 
-        fetchWrapper(`${appointments_path}`,  {
+        fetchWrapper(PATHS.APPOINTMENTS,  {
             method: 'POST',
             body: JSON.stringify({
                 loc_id:     appointment.loc_id,
@@ -80,7 +62,7 @@ export const API = {
         }}),
 
     deleteAppointment : async (appointment_id,key) => 
-        fetchWrapper(`${appointments_path}`,  {
+        fetchWrapper(PATHS.APPOINTMENTS,  {
             method: 'DELETE',
             body: JSON.stringify({
                 apt_id:     appointment_id,
@@ -92,11 +74,11 @@ export const API = {
         }}),
 
     fetchMapInfo : async (streetNumber,city,province,country,postalCode) => 
-        fetchWrapper(`${MAPS_ENDPOINT}?key=${MAPS_API_KEY}&address=${streetNumber}%20${city}%20${province}%20${country}%20${postalCode}`, {}),
+        fetchWrapper(`${PATHS.MAPS}?key=${MAPS_API_KEY}&address=${streetNumber}%20${city}%20${province}%20${country}%20${postalCode}`, {}),
 
 
     updateWorkingPlan: async (wp_id, start, end, location_id, key) => 
-      fetchWrapper(`${availability_workingplan_path}`,  {
+      fetchWrapper(PATHS.WORKING_PLAN,  {
         method: 'PATCH',
         body: JSON.stringify({wp_id, start, end, location_id}),
         headers: {
@@ -105,7 +87,7 @@ export const API = {
     }}),
 
     postBreak: async (days, start, end, location_id, key) => 
-      fetchWrapper(`${availability_breaks_path}`,  {
+      fetchWrapper(PATHS.BREAKS,  {
         method: 'POST',
         body: JSON.stringify({days, start, end, location_id}),
         headers: {
@@ -114,7 +96,7 @@ export const API = {
     }}),
 
     deleteBreak: async (break_id, location_id, key) => 
-      fetchWrapper(`${availability_breaks_path}`,  {
+      fetchWrapper(PATHS.BREAKS,  {
         method: 'DELETE',
         body: JSON.stringify({location_id, break_id}),
         headers: {
@@ -123,7 +105,7 @@ export const API = {
     }}),
 
     updateServiceDuration: async (sd_id, new_duration, key) => 
-      fetchWrapper(`${availability_servicedurations_path}`,  {
+      fetchWrapper(PATHS.SERVICE_DURATIONS,  {
         method: 'PATCH',
         body: JSON.stringify({sd_id, new_duration}),
         headers: {
@@ -132,7 +114,7 @@ export const API = {
     }}),
    
     startSession : async (user_name, password)=>
-       fetchWrapper(auth_path, {
+       fetchWrapper(PATHS.AUTH, {
         method: 'POST',
         body: JSON.stringify({user_name: user_name, password: password}),
         headers: {
@@ -140,7 +122,7 @@ export const API = {
       }}),
 
       endSession : async (key)=>
-       fetchWrapper(auth_path, {
+       fetchWrapper(PATHS.AUTH, {
         method: 'POST',
         headers: {'Content-Type': 'application/json',key: key}
       }),
