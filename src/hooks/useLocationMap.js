@@ -37,6 +37,7 @@ const getLocationPropsFromData = dataArr =>
         postal_code: data.postal_code,
         province: data.province,
         title: data.title,
+        serviceDurations: data.serviceDurations
 }))
 
 
@@ -102,12 +103,13 @@ function useLocationMap(dataArr = [], selectedFilters = [], navHome){
             originalLocation.current = null
         }    
     }
-    
+    //const isLocationSelected = (location_id) => selectedLocationId === location_id
     return {
         locations, 
         filteredLocations,
         selectedLocationId,
-        selectLocation: (id)=>setSelectedLocationId(id),
+        selectLocation:     (id)=>setSelectedLocationId(id),
+        isLocationSelected: (location_id) => selectedLocationId === location_id,
         cancelMapPreview,
         editLocationLoading,
         editLocation,
