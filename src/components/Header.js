@@ -5,6 +5,8 @@ import { useState } from 'react'
 
 import LoadingOverlay from './LoadingOverlay'
 
+import ModalWrapper from './ModalWrapper'
+
 import useAPI from '../useAPI.js'
 import API from '../API'
 
@@ -47,7 +49,6 @@ return(<>
             <LogOn startSession={startSession} loading={startSessionLoading}/>                         
         </ModalWrapper>           
         
-
         {links?.map(({name, route}, i)=> <Link key={i} to={route}>{name}</Link>)}
 
         {isAuth() ? <span onClick={(e)=>endSession()}>Log Out</span> : 
@@ -74,24 +75,5 @@ function LogOn({ startSession = ()=>{}, loading = false}){
         </div>
       
 </div>);
-}
-
-function ModalWrapper({isOpen = false, close = ()=>{}, children}){
-
-   if(isOpen){
-        return(<>
-            <div className='fullscreen_overlay'>
-                <div className='modal_container'>
-                    <div className='close_wrapper'>
-                        <div onClick={close} className="cancel_panel_btn">X</div>           
-                        {children}
-                    </div>
-                </div>  
-            </div>
-        </>)
-   }
-
-   return <></>
-
 }
 
