@@ -1,5 +1,4 @@
 import IconList from './IconList'
-import LocationCard from './LocationCard'
 
 import {useAppContext} from '../AppContextProvider'
 
@@ -11,18 +10,13 @@ import '../styles.css';
 
 function LocationList({
     locations = [],
-    loading = false
-   // selectedLocationId = null
+    loading = false,
+    renderLocationCard = ()=><></>
 }){
   
-    const { selectedLocationId, 
-        selectedIcons, 
-        toggleIcon, 
-        selectLocation } = useAppContext()
+    const { selectedIcons, toggleIcon} = useAppContext()
 
     const disabledIcons = getDisabledIconsForLocations(locations);
-
-    const isLocationSelected = (location_id) => selectedLocationId === location_id
 
     return(<>
         <div className="body_locations">
@@ -43,14 +37,7 @@ function LocationList({
             </div>
            
             
-            {locations.map( (location, idx)=>
-                <div className={`location_card ${isLocationSelected(location.id) ? `location_card_selected` : ""}`}  onClick={e=>selectLocation(location.id)}>
-                    <LocationCard
-                        key={idx}
-                        isLocationSelected={isLocationSelected(location.id)}
-                        location={location}/> 
-                 </div>
-            )}
+            {locations.map( (location)=>{return renderLocationCard(location)})}
 
         </div>
     </>)

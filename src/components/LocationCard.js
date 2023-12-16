@@ -1,19 +1,14 @@
-
-import { useAuth } from '../AuthProvider'
 import IconList from './IconList'
-import {useAppContext} from '../AppContextProvider'
 
 import '../styles.css';
 
 function LocationCard({
     location = {},
     isLocationSelected = false,
-    handleSetEdit = () =>{},
+    buttons = []
   }){
-    const { isStoreOwner, isUser } = useAuth();  
-    const {info, address, id, LatLng, icons, appointments, city, email, phone, postal_code, province, title, country} = location
-  
-    const { handleManageAppointments } = useAppContext();
+
+    const {info, address, id, LatLng, icons, city, email, phone, postal_code, province, title, country} = location
   
     return(<>
        
@@ -64,20 +59,11 @@ function LocationCard({
             <div>info</div>
              <div>{info}</div>
         </div>
-  
-        {isLocationSelected ? <> 
-                <div className="location_card_btns">  
-                    { isStoreOwner() ? <>
-                        <button onClick={handleSetEdit} className="">Edit</button>              
-                    </> 
-                    : isUser() ? <>
-                        <button onClick={e=>handleManageAppointments()} className="">
-                            {appointments && appointments.length > 0 ? `Manage Appointments` : `Book Appointment`}
-                        </button>
-                    </> : <></>}
-                </div>
-            </>
-        : <></>}
+
+        { isLocationSelected ? <div className="location_card_btns">  
+            {buttons.map((btn_data, idx)=><button key={idx} onClick={btn_data.handler}>{btn_data.text}</button>)}
+        </div>:<></>}
+
     </>);
   }
 

@@ -103,13 +103,18 @@ function StoreOwnerLayout(){
     },
   ]
 
-  context.selectedLocationId = selectedLocationId
-  context.selectLocation = selectLocation
   context.selectAppointments =  (appointments)=>selectAppointments(appointments)
 
   console.log("locations: ", locations)
 
   const location = locations.length > 0 ? locations[0] : []
+
+  const locationCardButtons = [
+    {
+      text: "Edit",
+      handler: ()=>navigate("/STOREOWNER/edit_location")
+    }
+  ]
 
   return(<>
     <Routes>
@@ -135,7 +140,7 @@ function StoreOwnerLayout(){
                             <LocationCard 
                               location={location} 
                               isLocationSelected={true} //replace this with an array of buttons to add to the card
-                              handleSetEdit={()=>navigate("/STOREOWNER/edit_location")}/>
+                              buttons={locationCardButtons}/>
                           </div>
                                     
                         </>}/>

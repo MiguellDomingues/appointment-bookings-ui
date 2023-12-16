@@ -1,10 +1,9 @@
 import {useState, useEffect, } from 'react'
 
-import {useAuth} from '../AuthProvider'
-
 import MyMap from '../components/Map.tsx'
 import PageLayout from '../layouts/PageLayout';
 import LocationList from '../components/LocationList'
+import LocationCard from '../components/LocationCard'
 
 import LoadingOverlay         from '../components/LoadingOverlay'
 
@@ -34,15 +33,15 @@ function GuestLayout(){
 
     const {selectedIcons,toggleIcon} = useIcons();
 
-    const { filteredLocations,selectedLocationId,selectLocation,} = useLocationMap(data, selectedIcons)
+    const { filteredLocations,selectedLocationId,selectLocation,isLocationSelected} = useLocationMap(data, selectedIcons)
 
     useEffect( () => getData(), []);
 
     const context = useAppContext();
 
     context.refetchLocations = () => getData()
-    context.selectedLocationId = selectedLocationId
-    context.selectLocation = selectLocation
+    //context.selectedLocationId = selectedLocationId
+    //context.selectLocation = selectLocation
     context.selectedIcons =  selectedIcons
     context.toggleIcon =  toggleIcon
 
@@ -58,24 +57,33 @@ function GuestLayout(){
       fetchGuestLocations()
     }
 
-return(<>
-  <Routes>
-      <Route 
-        index
-        element={<>
-          <PageLayout 
-            leftPanel={<>
-            <MyMap 
-                posts={filteredLocations} 
-                selected={selectedLocationId} 
-                handleSelectedLocation={selectLocation} /> 
-            </>} 
-            rightPanel={<>
-                <LocationList {...{loading}} locations={filteredLocations}/> 
-            </>}/>    
-          </>}/>
-    </Routes>
-  </>)
+    const renderLocationCard = (location) =>
+      <div key={location.id} className={`location_card ${isLocationSelected(location.id) ? `location_card_selected` : ""}`}  onClick={e=>selectLocation(location.id)}>
+        <LocationCard 
+          isLocationSelected={isLocationSelected(location.id)} 
+          location={location} 
+          buttons={[]}/>
+        </div>
+
+   
+  return(<>
+    <Routes>
+        <Route 
+          index
+          element={<>
+            <PageLayout 
+              leftPanel={<>
+              <MyMap 
+                  posts={filteredLocations} 
+                  selected={selectedLocationId} 
+                  handleSelectedLocation={selectLocation} /> 
+              </>} 
+              rightPanel={<>
+                  <LocationList {...{loading}} locations={filteredLocations} renderLocationCard={renderLocationCard}/> 
+              </>}/>    
+            </>}/>
+      </Routes>
+    </>)
 }
 
 export default GuestLayout
