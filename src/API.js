@@ -114,18 +114,27 @@ export const API = {
     }}),
    
     startSession : async (user_name, password)=>
-       fetchWrapper(PATHS.AUTH, {
+        fetchWrapper(PATHS.AUTH, {
         method: 'POST',
         body: JSON.stringify({user_name: user_name, password: password}),
         headers: {
         'Content-Type': 'application/json',
-      }}),
+    }}),
 
-      endSession : async (key)=>
-       fetchWrapper(PATHS.AUTH, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json',key: key}
-      }),
+    endSession : async (key)=>
+      fetchWrapper(PATHS.AUTH, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json',key: key}
+    }),
+
+    fetchPossibleBookings : async (service_id, location_id, date_time, key)=>
+      fetchWrapper(`${PATHS.APPOINTMENT_AVAILABILITY}?s_id=${service_id}&l_id=${location_id}&dt=${date_time}`,  {
+        method: 'GET',
+       // body: JSON.stringify({service_id,location_id,date_time}),
+        headers: {
+        'Content-Type': 'application/json',
+        key: key
+    }})
   }
 
 export default API

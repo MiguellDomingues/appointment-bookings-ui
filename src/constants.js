@@ -17,11 +17,12 @@ const ROUTES = {
 }
 
 export const PATHS = {
-    LOCATIONS:         `${DOMAIN}${ROUTES.LOCATIONS}`,
-    APPOINTMENTS:      `${DOMAIN}${ROUTES.APPOINTMENT}`,
-    WORKING_PLAN:      `${DOMAIN}${ROUTES.AVAILABILITY}${ROUTES.WORKING_PLANS}`,
-    BREAKS:            `${DOMAIN}${ROUTES.AVAILABILITY}${ROUTES.BREAKS}`,
-    SERVICE_DURATIONS: `${DOMAIN}${ROUTES.AVAILABILITY}${ROUTES.SERVICE_DURATIONS}`,
-    AUTH:              `${DOMAIN}${ROUTES.AUTH}`,
-    MAPS:              `https://maps.googleapis.com/maps/api/geocode/json`
+    LOCATIONS:                  `${DOMAIN}${ROUTES.LOCATIONS}`,
+    APPOINTMENTS:               `${DOMAIN}${ROUTES.APPOINTMENT}`,
+    APPOINTMENT_AVAILABILITY:   `${DOMAIN}${ROUTES.AVAILABILITY}`,
+    WORKING_PLAN:               `${DOMAIN}${ROUTES.AVAILABILITY}${ROUTES.WORKING_PLANS}`,
+    BREAKS:                     `${DOMAIN}${ROUTES.AVAILABILITY}${ROUTES.BREAKS}`,
+    SERVICE_DURATIONS:          `${DOMAIN}${ROUTES.AVAILABILITY}${ROUTES.SERVICE_DURATIONS}`,
+    AUTH:                       `${DOMAIN}${ROUTES.AUTH}`,
+    MAPS:                       `https://maps.googleapis.com/maps/api/geocode/json`
 }

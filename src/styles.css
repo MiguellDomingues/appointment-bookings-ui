@@ -132,6 +132,7 @@
 }
 
 .cancel_panel_btn{
+  z-index: 999;
   position: absolute;
   top: 0;
   right: 0;
@@ -387,6 +388,7 @@
 }
 
 .auth_body{
+  position: relative;
   height: 500px;
   width: 500px;
   background-color: white;
@@ -394,6 +396,20 @@
 
 .close_wrapper{
   position: relative;
+}
+
+.flow_buttons_container{
+  position: absolute;
+  width: 100%;
+  bottom: 0px;
+  left: 0px;
+}
+
+.flow_buttons{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 
 
