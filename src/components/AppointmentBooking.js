@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 
 import IconList from '../components/IconList'
 import LoadingWrapper from '../components/LoadingWrapper'
@@ -29,29 +29,68 @@ user clicks Book Appointment to open the modal
     
 */
 
-function AppointmentBooking( {location = {id: null, icons: [], serviceDurations: [{id: null}]} }){
+//const totalMinutesToHoursMinutes= totalMins => ({h: Math.floor(totalMins/60) , m: totalMins%60})
 
-    //location = location ?? {id: null, icons: [], serviceDurations: [{id: null}]}
+const totalMinutesToHoursMinutesString = (totalMins, is24HourFormat = false) => {
+
+  const hours = is24HourFormat ? Math.floor(totalMins/60) 
+  : 
+  Math.floor(totalMins/60) === 12 ? 
+    Math.floor(totalMins/60) 
+    : 
+    Math.floor(totalMins/60)%12
+
+  return `${new String(hours)}:${new String(totalMins%60).padStart(2, '0')} ${Math.floor(totalMins/60) < 12 ? `AM` : `PM`}`
+}
+
+
+
+function AppointmentBooking( {location} ){
+
+    location = location ?? {id: null, icons: [], serviceDurations: [{id: null}]}
     const services = location.icons ?? []
     const locationId = location.id ?? ""
 
+    const [currentFlowIndex, setCurrentFlowIndex ] = useState(0)
+    
+
     const {selectedIcons, toggleIconSingle } = useIcons();
+
+
     const [possibleBookingDates, setPossibleBookingDates ] = useState([]);
+    const [selectedDate, setSelectedDate ] = useState(null);
 
-   // const [selectedDate, setSelectedDate ] = useState(null);
-
+    
     const [dateTimeSlots, setDateTimeSlots ] = useState([]);
+    const [selectedTimeSlot, setSelectedTimeSlot ] = useState(null);
+
+    const [bookingTimes, setBookingTimes ] = useState([]);
+    const [selectedBookingTime, setSelectedBookingTime ] = useState(null);
+
+    useEffect(()=>{ //when a new date is selected, get the corresponding time slots and clear the currently selected time slot
+      setDateTimeSlots( (possibleBookingDates.find( ({date})=> date === selectedDate))?.sceduale || []  )
+      setSelectedTimeSlot(null)
+    }, [selectedDate])
+
+    
+    useEffect(()=>{ //when a new time slot is selected, get the corresponding booking times 
+      setBookingTimes( selectedTimeSlot?.open_times  )
+      setSelectedBookingTime(null)
+    }, [selectedTimeSlot])
+
+
+
+    //console.log("selectedTimeSlot",selectedTimeSlot)
 
     const selectedIcon = selectedIcons[0] ?? null
 
-    const selectedServiceDurationId = (location.serviceDurations.find(sd=>sd.service === selectedIcon))?.id ?? null
+    const selectedServiceDuration = location.serviceDurations.find(sd=>sd.service === selectedIcon) ?? null
 
-   // console.log("apt booking booking location: ", location)
+   // console.log("selectedServiceDuration: ", selectedServiceDuration
 
-   console.log("possibleBookingDates: ", possibleBookingDates)
-   console.log("dateTimeSlots: ", dateTimeSlots) // (possibleBookingDates.find( ({date})=> date === selected_date)).sceduale )
+   //console.log("possibleBookingDates: ", possibleBookingDates)
+  // console.log("dateTimeSlots: ", dateTimeSlots) // (possibleBookingDates.find( ({date})=> date === selected_date)).sceduale )
   
-    const [currentFlowIndex, setCurrentFlowIndex ] = useState(0)
 
     const { 
       fetchPossibleBookings, 
@@ -60,14 +99,15 @@ function AppointmentBooking( {location = {id: null, icons: [], serviceDurations:
           API.fetchPossibleBookings,
           ({possible_bookings}) => {
             console.log("fetched bookings: ", possible_bookings)
+            
             setPossibleBookingDates(possible_bookings)
+            setSelectedDate(null)
             nextFlow()
           },
           (err) => {console.log("err in bookings")},
     )
 
-    const getTimeSlots = (selected_date) => 
-      setDateTimeSlots( (possibleBookingDates.find( ({date})=> date === selected_date))?.sceduale  )
+  //selectDate={getTimeSlots}
     
     const nextFlow = (hasOnNextHandler) => {
 
@@ -87,29 +127,85 @@ function AppointmentBooking( {location = {id: null, icons: [], serviceDurations:
             <LoadingWrapper loading={loadingFetchPossibleBookings}>
               services
               <IconList iconSize={26} icons={services} selectedIcons={selectedIcons} toggleIcon={toggleIconSingle}/> 
+              { selectedServiceDuration ? <>{` duration: ${selectedServiceDuration.duration}`}</> : <></>}
             </LoadingWrapper>         
         </>,
 
         onNext: ()=>{
-         // console.log(selectedServiceDurationId)
-          fetchPossibleBookings(selectedServiceDurationId, locationId, Date.now())
+          fetchPossibleBookings(selectedServiceDuration.id, locationId, Date.now())
         },
 
-        canNext: !!selectedServiceDurationId
+        canNext: !!selectedServiceDuration
 
       },
       {
+        
         cmp: <>
-          appointment selection for {getIconByKey(selectedIcon)}
-          <BookingDates possibleBookingSlots={possibleBookingDates} selectDate={getTimeSlots}/>
-          <TimeSlots timeSlots={dateTimeSlots} />
+          <div className="appointment_selection_layout">
 
-        </>,
-        canNext: true
+            <div className="appointment_selection_top_layout">
+              <div className="appointment_selection_top_content">
+                <div>appointment selection for {getIconByKey(selectedIcon)}</div>
+                <div>Availability Legend:</div>
+                <div className="appointment_selection_top_legend">
+                  <div>Very High</div>
+                  <div style={{backgroundColor: getCSSColorByAvailability(80)}}>&emsp;</div>
+                  <div>High</div>
+                  <div style={{backgroundColor: getCSSColorByAvailability(70)}}>&emsp;</div>
+                  <div>Medium</div>
+                  <div style={{backgroundColor: getCSSColorByAvailability(45)}}>&emsp;</div>
+                  <div>Low</div>
+                  <div style={{backgroundColor: getCSSColorByAvailability(20)}}>&emsp;</div>
+                </div>
+                
+              </div>
+            </div>
+
+           
+            <div className="appointment_selection_middle_layout">
+
+              <div className="appointment_selection_middle_content">
+                <BookingDates 
+                  possibleBookingSlots={possibleBookingDates} 
+                  selectedDate={selectedDate} 
+                  selectDate={(selected_date) => setSelectedDate(selected_date)}/>
+              </div>
+
+              <div className="appointment_selection_middle_content">
+                <DateTimeSlots 
+                  timeSlots={dateTimeSlots} 
+                  selectedTimeSlot={selectedTimeSlot} 
+                  selectTimeSlot={(timeSlot)=>setSelectedTimeSlot(timeSlot)}/>
+              </div>
+
+              <div className="appointment_selection_middle_content">
+                <AvailableBookingTimes 
+                  availableTimes={bookingTimes} 
+                  selectedTime={selectedBookingTime} 
+                  selectTime={(time)=>setSelectedBookingTime(time)} />
+              </div>
+
+            </div>
+
+            <div className="appointment_selection_bottom_layout">
+              <div className="appointment_selection_bottom_content">
+                {selectedDate && selectedBookingTime ? 
+                <>
+                  booking appointment on: {selectedDate} {totalMinutesToHoursMinutesString(selectedBookingTime)} 
+                </>:<></>}
+              </div>
+            </div>
+
+          </div>
+
+        </>
+       ,
+        canNext: !!selectedTimeSlot
       },
       {
         cmp: <>
           appointment confirmation
+          <button></button>
         </>,
         canNext: true
       },
@@ -137,49 +233,154 @@ export default AppointmentBooking;
 
 const getCSSColorByAvailability = (availability) =>
   availability === 0 ? null :
-  availability < 25 ? "red" :
-  availability < 50 ? "orange" :
-  availability < 75 ? "yellow" : "green"
+  availability < 25 ? "orangered" :
+  availability < 50 ? "yellow" :
+  availability < 75 ? "yellowgreen" : "green"
+
+    
+  
+
+function BookingDates({possibleBookingSlots, selectedDate, selectDate}){
 
 
-function BookingDates({possibleBookingSlots, selectDate}){
-
- 
   possibleBookingSlots = possibleBookingSlots ?? []
   selectDate = selectDate ?? (()=>{})
 
   return(<>
     {possibleBookingSlots.map( (pbs, idx)=>
       <button
-        style={{backgroundColor: getCSSColorByAvailability(pbs.day_availability)}}
+        style={{
+          backgroundColor: getCSSColorByAvailability(pbs.day_availability), 
+          border: pbs.date === selectedDate && "5px solid black" 
+        }}
         disabled={pbs.day_availability === 0} 
         onClick={e=>selectDate(pbs.date)} 
         key={idx}>
           {`${pbs.date} ${pbs.dotw}`}
-      </button>
-    )}
+      </button>)}
   </>)
 
 }
 
-function TimeSlots({timeSlots, selectTimeSlot}){
+function DateTimeSlots({timeSlots, selectedTimeSlot, selectTimeSlot}){
 
   timeSlots = timeSlots ?? []
   selectTimeSlot = selectTimeSlot ?? (()=>{})
 
   return(<>
-    {timeSlots.map( (ts, idx)=>
+    {timeSlots.filter(ts=>ts.availability !== 0) //remove 0 availability time slots
+      .map( (ts, idx)=>
+        <span
+          style={{
+            backgroundColor: getCSSColorByAvailability(ts.availability),
+            border: ts.start === selectedTimeSlot?.start && "5px solid black" 
+          }} 
+          onClick={e=>selectTimeSlot(ts)} 
+          key={idx}>
+          {`${totalMinutesToHoursMinutesString(ts.start)} to ${totalMinutesToHoursMinutesString(ts.end)} `}<br/>{ts.desc}     
+        </span> 
+    )}
+  </>)
+
+}
+
+function AvailableBookingTimes({availableTimes, selectedTime, selectTime}){
+
+  availableTimes = availableTimes ?? []
+  selectTime = selectTime ?? (()=>{})
+
+  return(<>
+    {availableTimes.map( (time, idx)=>
       <button
-        style={{backgroundColor: getCSSColorByAvailability(ts.availability)}}
-        disabled={ts.availability === 0}  
-        onClick={e=>selectTimeSlot(ts.start)} 
+        style={{
+          border: time === selectedTime && "5px solid black" 
+        }} 
+        onClick={e=>selectTime(time)} 
         key={idx}>
-          {`${ts.start} ${ts.end}`}
+          {totalMinutesToHoursMinutesString(time)}
       </button>
     )}
   </>)
 
 }
+
+/*
+function AppointmentPicker({
+  _possibleBookingDates,
+  _selectedDate,
+  selectedIcon
+}){
+
+
+  const [possibleBookingDates, setPossibleBookingDates ] = useState(_possibleBookingDates);
+  const [selectedDate, setSelectedDate ] = useState(_selectedDate);
+
+  const [dateTimeSlots, setDateTimeSlots ] = useState([]);
+  const [selectedTimeSlot, setSelectedTimeSlot ] = useState(null);
+
+  const [bookingTimes, setBookingTimes ] = useState([]);
+  const [selectedBookingTime, setSelectedBookingTime ] = useState(null);
+
+  return( <div className="appointment_selection_layout">
+
+  <div className="appointment_selection_top_layout">
+    <div className="appointment_selection_top_content">
+      <div>appointment selection for {getIconByKey(selectedIcon)}</div>
+      <div>Availability Legend:</div>
+      <div className="appointment_selection_top_legend">
+        <div>Very High</div>
+        <div style={{backgroundColor: getCSSColorByAvailability(80)}}>&emsp;</div>
+        <div>High</div>
+        <div style={{backgroundColor: getCSSColorByAvailability(70)}}>&emsp;</div>
+        <div>Medium</div>
+        <div style={{backgroundColor: getCSSColorByAvailability(45)}}>&emsp;</div>
+        <div>Low</div>
+        <div style={{backgroundColor: getCSSColorByAvailability(20)}}>&emsp;</div>
+      </div>
+      
+    </div>
+  </div>
+
+  <div className="appointment_selection_middle_layout">
+
+    <div className="appointment_selection_middle_content">
+      <BookingDates 
+        possibleBookingSlots={possibleBookingDates} 
+        selectedDate={selectedDate} 
+        selectDate={(selected_date) => setSelectedDate(selected_date)}/>
+    </div>
+
+    <div className="appointment_selection_middle_content">
+      <DateTimeSlots 
+        timeSlots={dateTimeSlots} 
+        selectedTimeSlot={selectedTimeSlot} 
+        selectTimeSlot={(timeSlot)=>setSelectedTimeSlot(timeSlot)}/>
+    </div>
+
+    <div className="appointment_selection_middle_content">
+      <AvailableBookingTimes 
+        availableTimes={bookingTimes} 
+        selectedTime={selectedBookingTime} 
+        selectTime={(time)=>setSelectedBookingTime(time)} />
+    </div>
+
+  </div>
+
+  <div className="appointment_selection_bottom_layout">
+    <div className="appointment_selection_bottom_content">
+      {selectedDate && selectedBookingTime ? 
+      <>
+        booking appointment on: {selectedDate} {totalMinutesToHoursMinutesString(selectedBookingTime)} 
+      </>:<></>}
+    </div>
+  </div>
+
+</div>)
+
+}
+*/
+
+
 
 
 

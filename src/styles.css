@@ -412,6 +412,63 @@
   align-items: center;
 }
 
+.appointment_selection_layout{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.appointment_selection_top_layout{
+  width: 100%;
+  min-height: 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.appointment_selection_middle_layout{
+  display: flex;
+  flex-direction: row;
+  min-width: 100%;
+  height: 50%
+}
+
+.appointment_selection_bottom_layout{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 100%;
+  height: 30%
+}
+
+.appointment_selection_middle_content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 33%;
+}
+
+.appointment_selection_top_content{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.appointment_selection_bottom_content{
+  
+}
+
+.appointment_selection_top_legend{
+  display: flex;
+  flex-direction: row;
+  row-gap: .125em;
+}
+
+
+
 
 
 
